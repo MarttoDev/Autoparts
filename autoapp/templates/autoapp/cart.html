@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Carrito de Compras</title>
+    <link rel="stylesheet" href="{% static 'autoapp/styles.css' %}">
+</head>
+<body>
+<header>
+    <h1>Tu Carrito</h1>
+    <a href="{% url 'index' %}">Seguir comprando</a>
+</header>
+
+<main>
+    {% if cart_items %}
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Total</th>
+                <th>Quitar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart_items %}
+            <tr>
+                <td>{{ item.producto.nombre }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>${{ item.producto.precio }}</td>
+                <td>${{ item.total }}</td>
+                <td>
+                    <form action="{% url 'remove_from_cart' item.producto.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit">Quitar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p><strong>Total a pagar: ${{ cart_total }}</strong></p>
+    <a href="{% url 'iniciar_pago' %}">Pagar con Webpay</a>
+
+    {% else %}
+    <p>Tu carrito está vacío.</p>
+    {% endif %}
+</main>
+</body>
+</html>

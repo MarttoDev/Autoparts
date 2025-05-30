@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>AutoParts - Tienda de Repuestos</title>
+    <link rel="stylesheet" href="{% static 'autoapp/styles.css' %}">
+</head>
+<body>
+    <header>
+        <h1>AutoParts</h1>
+        <p>Tu tienda de repuestos de confianza</p>
+        <a href="{% url 'cart_detail' %}">
+            Carrito <span id="cart-count">{{ cart_item_count }}</span>
+        </a>
+    </header>
+
+    <div class="container">
+<section class="productos">
+  <h2>Productos disponibles</h2>
+  <div class="product-list">
+    {% for producto in productos %}
+      <div class="product-card">
+        <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}">
+        <h3>{{ producto.nombre }}</h3>
+        <p class="marca">Marca: {{ producto.marca }}</p>
+        <p>{{ producto.descripcion }}</p>
+        <p class="precio">${{ producto.precio }}</p>
+        <p class="stock">Stock: {{ producto.stock }}</p>
+        <a href="{% url 'add_to_cart' producto.id %}" class="btn">Agregar al carrito</a>
+      </div>
+    {% empty %}
+      <p>No hay productos disponibles aún.</p>
+    {% endfor %}
+  </div>
+</section>
+
+    <footer>
+        <p>&copy; 2025 AutoParts. Todos los derechos reservados.</p>
+    </footer>
+</body>
+</html>
