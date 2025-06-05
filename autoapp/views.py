@@ -149,8 +149,11 @@ def productos_api(request):
 @login_required
 def cart_detail(request):
     cart = Cart(request)
-    items = cart.get_items()
-    return render(request, 'cart.html', {'cart_items': items})
+    return render(request, 'cart.html', {
+        'cart_items': cart.get_items(),
+        'cart_total': cart.get_total(),
+        'items_count': len(cart)  # Ahora esto funcionará
+    })
 
 
 def limpiar_sesion(request):
