@@ -1,4 +1,6 @@
 import uuid
+from rest_framework import generics
+from .serializers import ProductoSerializer
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Producto,CartItem
@@ -8,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.forms import UserCreationForm
 from .forms import RegistroUsuarioForm
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 
 def get_transaction():
     return Transaction.build_for_integration(
@@ -66,12 +69,26 @@ def update_cart_item(request, product_id):
         request.session.modified = True
     return redirect('cart_detail')
 
-def remove_from_cart(request, product_id):
-    cart = request.session.get('cart', {})
-    cart.pop(str(product_id), None)
-    request.session['cart'] = cart
-    request.session.modified = True
+
+def remove_from_cart(request, producto_id):
+    cart = Cart(request)
+    producto = Producto.objects.get(id=producto_id)
+    cart.remove(producto)
     return redirect('cart_detail')
+
+def productos_api(request):
+    productos = Producto.objects.all()
+    data = [
+        {
+            'id': p.id,
+            'nombre': p.nombre,
+            'marca': p.marca,
+            'precio': p.precio,
+            'stock': p.stock,
+        }
+        for p in productos
+    ]
+    return JsonResponse(data, safe=False)
 
 @login_required
 def cart_detail(request):
@@ -85,11 +102,11 @@ def limpiar_sesion(request):
 
 def iniciar_pago(request):
     cart = Cart(request)
-    total = int(cart.get_total())  # ¡Asegúrate de que sea ENTERO!
+    total = int(cart.get_total())  
     
     buy_order = str(uuid.uuid4())[:26]  # Genera una orden única
     session_id = request.session.session_key or str(uuid.uuid4())
-    return_url = request.build_absolute_uri('/webpay/retorno/')  # IMPORTANTE: URL absoluta
+    return_url = request.build_absolute_uri('/webpay/retorno/') 
 
     transaction = Transaction.build_for_integration(
         commerce_code="597055555532",  # Código de prueba
@@ -110,10 +127,10 @@ def iniciar_pago(request):
 
 @csrf_exempt
 def retorno_pago(request):
-    # Depuración inmediata (verás esto en la consola de Django)
+    # Depuración inmediata 
     print("\n🔥 Datos recibidos:", request.POST or request.GET)
     
-    # Maneja tanto POST (éxito) como GET (usuario volvió manualmente)
+    # Maneja exito o fail
     token = request.POST.get("token_ws") or request.GET.get("token_ws")
     
     if token:
@@ -131,7 +148,11 @@ def retorno_pago(request):
         except Exception as e:
             return render(request, "webpay/error.html", {"mensaje": f"Error: {str(e)}"})
     
-    # Si no hay token, muestra una página genérica (para evitar errores)
+    # Si no hay token, muestra una página genérica 
     return render(request, "webpay/error.html", {
         "mensaje": "Proceso completado. Verifica en Transbank si el pago fue exitoso."
     })
+
+class ProductoListAPI(generics.ListAPIView):
+    queryset = Producto.objects.all()
+    serializer_class = ProductoSerializer

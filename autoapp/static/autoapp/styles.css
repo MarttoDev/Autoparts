@@ -124,6 +124,8 @@ header {
   flex-direction: column;
   justify-content: space-between;
   transition: box-shadow 0.3s ease;
+  height: 400px; /* Alto fijo para uniformidad */
+  overflow: hidden; /* Evita que contenido se salga */
 }
 
 .producto:hover {
@@ -142,19 +144,30 @@ header {
   color: #999;
   font-style: italic;
   font-size: 0.9rem;
+  overflow: hidden; /* Que no se salga la imagen */
+}
+
+.imagen img.producto-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Ajusta la imagen sin deformarla */
+  display: block;
+}
+
+.producto h3,
+.producto p,
+.precio {
+  margin: 0 0 0.3rem 0;
+  color: var(--texto-secundario);
+  font-size: 0.95rem;
+  flex-shrink: 0;
 }
 
 .producto h3 {
-  margin: 0 0 0.3rem 0;
   color: var(--burdeos);
   font-weight: 700;
   font-size: 1.2rem;
-}
-
-.producto p {
-  margin: 0 0 0.6rem 0;
-  color: var(--texto-secundario);
-  font-size: 0.9rem;
+  margin-bottom: 0.6rem;
 }
 
 .precio {

@@ -44,3 +44,18 @@ class Cart:
             cart = self.request.session.get('cart', {})
             productos = Producto.objects.filter(id__in=cart.keys())
             return sum(p.precio * cart[str(p.id)] for p in productos)
+
+    def remove(self, producto):
+        if self.user.is_authenticated:
+            try:
+                item = CartItem.objects.get(user=self.user, producto=producto)
+                item.delete()
+            except CartItem.DoesNotExist:
+                pass
+        else:
+            cart = self.request.session.get('cart', {})
+            product_id = str(producto.id)
+            if product_id in cart:
+                del cart[product_id]
+                self.request.session['cart'] = cart
+

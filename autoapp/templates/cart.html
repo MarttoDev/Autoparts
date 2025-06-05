@@ -25,22 +25,23 @@
                 <th>Quitar</th>
             </tr>
         </thead>
-        <tbody>
-            {% for item in cart_items %}
-            <tr>
-                <td>{{ item.producto.nombre }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>${{ item.producto.precio }}</td>
-                <td>${{ item.total }}</td>
-                <td>
-                    <form action="{% url 'remove_from_cart' item.producto.id %}" method="post">
-                        {% csrf_token %}
-                        <button type="submit">Quitar</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
+<tbody>
+    {% for item in cart_items %}
+    <tr>
+        <td>{{ item.producto.nombre }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>${{ item.producto.precio }}</td>
+        <td>${{ item.total }}</td>
+        <td>
+            <form action="{% url 'remove_from_cart' item.producto.id %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit">Quitar</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+
     </table>
     <p><strong>Total a pagar: ${{ cart_total }}</strong></p>
     <a href="{% url 'iniciar_pago' %}">Pagar con Webpay</a>
