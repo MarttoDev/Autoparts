@@ -1,12 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.text import slugify
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100)
+    slug = models.SlugField(null=False, blank=False, unique=True)
 
     def __str__(self):
         return self.nombre
-
+    
 class Producto(models.Model):
     codigo_producto = models.CharField(max_length=20, unique=True)
     marca = models.CharField(max_length=100)
@@ -30,3 +32,5 @@ class CartItem(models.Model):
 
     def total(self):
         return self.quantity * self.producto.precio
+    
+

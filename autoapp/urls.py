@@ -14,6 +14,12 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('register/', views.register, name='register'),
     path('api/productos/', ProductoListAPI.as_view(), name='api-productos'),
+    path('categoria/<str:nombre>/', views.productos_por_categoria, name='categoria'),
+    path('productos/categoria/<int:categoria_id>/', views.productos_por_categoria, name='productos_por_categoria'),
+    path('categoria/<slug:slug>/', views.productos_por_categoria, name='categoria'),
+    path('productos/filtrar/', views.productos_filtrados, name='productos_filtrados'),
+
+
 ]
 
 

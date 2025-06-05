@@ -30,7 +30,6 @@ body {
   line-height: 1.6;
 }
 
-/* --- EL RESTO SIN CAMBIOS --- */
 header {
   background-color: var(--burdeos);
   color: var(--blanco);
@@ -53,7 +52,7 @@ header {
 
 .cart {
   font-size: 1rem;
-  background-color: var(--burdeos-oscuro);
+  background-color: #fff;
   padding: 0.4rem 1rem;
   border-radius: 20px;
   cursor: pointer;
@@ -62,57 +61,14 @@ header {
 }
 
 .cart:hover {
-  background-color: var(--burdeos-claro);
-}
-
-.hero {
-  background-color: var(--blanco);
-  padding: 3rem 1.5rem;
-  text-align: center;
-  max-width: 900px;
-  margin: 2rem auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgb(0 0 0 / 0.1);
-}
-
-.hero h1 {
-  font-size: 2.4rem;
-  margin-bottom: 0.6rem;
-  color: var(--burdeos);
-  font-weight: 700;
-}
-
-.hero p {
-  font-size: 1.1rem;
-  margin-bottom: 1.5rem;
-  color: var(--texto-secundario);
-}
-
-.hero button {
-  background-color: var(--burdeos);
-  color: var(--blanco);
-  border: none;
-  padding: 0.75rem 2rem;
-  font-size: 1.1rem;
-  border-radius: 40px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  font-weight: 600;
-  box-shadow: 0 4px 6px rgb(128 0 32 / 0.3);
-  user-select: none;
-}
-
-.hero button:hover {
-  background-color: var(--burdeos-claro);
+  background-color: #fff;
 }
 
 .productos {
-  max-width: 1200px;
-  margin: 0 auto 4rem auto;
-  padding: 0 1rem;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 2rem;
+  flex-grow: 1;
 }
 
 .producto {
@@ -124,8 +80,8 @@ header {
   flex-direction: column;
   justify-content: space-between;
   transition: box-shadow 0.3s ease;
-  height: 400px; /* Alto fijo para uniformidad */
-  overflow: hidden; /* Evita que contenido se salga */
+  height: 400px;
+  overflow: hidden;
 }
 
 .producto:hover {
@@ -144,13 +100,13 @@ header {
   color: #999;
   font-style: italic;
   font-size: 0.9rem;
-  overflow: hidden; /* Que no se salga la imagen */
+  overflow: hidden;
 }
 
 .imagen img.producto-img {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Ajusta la imagen sin deformarla */
+  object-fit: contain;
   display: block;
 }
 
@@ -202,11 +158,97 @@ header {
 
 /* Footer pegado al fondo */
 footer {
-  background-color: #5a1a1a; /* burdeos oscuro */
+  background-color: #5a1a1a;
   color: white;
   text-align: center;
   padding: 1rem 0;
-  margin-top: auto; /* Empuja el footer hacia abajo */
+  margin-top: auto;
   font-size: 0.9rem;
   font-family: Arial, sans-serif;
+}
+
+/* NUEVO: Layout principal con sidebar + productos */
+.main-container {
+  display: flex;
+  max-width: 1200px;
+  margin: 2rem auto 4rem auto;
+  gap: 2rem;
+  padding: 0 1rem;
+}
+
+/* Sidebar filtros */
+.sidebar {
+  flex: 0 0 220px;
+  background-color: var(--blanco);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.07);
+  padding: 1rem 1.5rem;
+  height: fit-content;
+}
+
+.sidebar h3 {
+  color: var(--burdeos);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.categoria-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem 0;
+}
+
+.categoria-list li {
+  margin-bottom: 0.6rem;
+}
+
+.categoria-list a {
+  text-decoration: none;
+  color: var(--texto-secundario);
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.categoria-list a:hover {
+  color: var(--burdeos);
+}
+
+/* Formulario de filtro de precio */
+.filtro-precio-form .input-group {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.filtro-precio-form label {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  color: var(--burdeos-oscuro);
+}
+
+.filtro-precio-form input[type="number"] {
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--gris-claro);
+  font-size: 0.9rem;
+  color: var(--texto-principal);
+}
+
+.btn-filtrar {
+  background-color: var(--burdeos);
+  color: var(--blanco);
+  border: none;
+  padding: 0.6rem 0;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.3s ease;
+  user-select: none;
+  font-size: 1rem;
+  box-shadow: 0 3px 6px rgb(128 0 32 / 0.3);
+}
+
+.btn-filtrar:hover {
+  background-color: var(--burdeos-claro);
 }
