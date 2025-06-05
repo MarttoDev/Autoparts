@@ -1,0 +1,18 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registrarse</title>
+  <link rel="stylesheet" href="{% static 'autoapp/register.css' %}">
+</head>
+<body>
+<form method="post">
+    <h2>Crear cuenta</h2>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Registrarse</button>
+</form>
+</body>
+</html>

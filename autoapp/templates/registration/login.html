@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Iniciar Sesión</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #fafafa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      background-color: #fff;
+      border: 2px solid #800020;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 300px;
+    }
+
+    h2 {
+      color: #800020;
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      color: #2c2c2c;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      background-color: #800020;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      margin-top: 1rem;
+      width: 100%;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #a42d40;
+    }
+
+    .extra-links {
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .extra-links a {
+      color: #800020;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Iniciar Sesión</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Entrar</button>
+    </form>
+    <div class="extra-links">
+      ¿No tienes cuenta? <a href="{% url 'register' %}">Regístrate</a>
+    </div>
+  </div>
+</body>
+</html>

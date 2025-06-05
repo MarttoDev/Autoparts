@@ -1,0 +1,73 @@
+:root {
+  --burdeos: #800020;
+  --burdeos-claro: #a42d40;
+  --burdeos-oscuro: #4b0013;
+  --gris-fondo: #fafafa;
+  --gris-claro: #e5e5e5;
+  --texto-principal: #2c2c2c;
+  --texto-secundario: #555555;
+  --blanco: #fff;
+}
+
+body {
+  background-color: var(--gris-fondo);
+  font-family: 'Segoe UI', sans-serif;
+  color: var(--texto-principal);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+form {
+  background-color: var(--blanco);
+  border: 1px solid var(--gris-claro);
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--burdeos);
+}
+
+form p {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.3rem;
+  color: var(--texto-secundario);
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--gris-claro);
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+button {
+  width: 100%;
+  background-color: var(--burdeos);
+  color: var(--blanco);
+  border: none;
+  padding: 0.7rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: var(--burdeos-claro);
+}

@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
@@ -11,6 +11,9 @@ urlpatterns = [
     path('webpay/iniciar/', views.iniciar_pago, name='iniciar_pago'),
     path('webpay/retorno/', views.retorno_pago, name='retorno_pago'),
     path('webpay/retorno/', views.retorno_pago, name='webpay_retorno'),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('register/', views.register, name='register'),
+
 
 
 ]

@@ -1,55 +1,46 @@
-# autoapp/cart.py
+from .models import CartItem, Producto
 
 class Cart:
     def __init__(self, request):
-        self.session = request.session
-        cart = self.session.get('cart')
+        self.request = request
+        self.user = request.user
 
-        # Aseguramos que el carrito sea un diccionario
-        if not isinstance(cart, dict):
-            cart = {}
-        self.session['cart'] = cart
-        self.cart = cart
-
-    def add(self, producto):
-        producto_id = str(producto.id)
-
-        if producto_id in self.cart:
-            self.cart[producto_id]['quantity'] += 1
+    def add(self, producto, quantity=1):
+        if self.user.is_authenticated:
+            item, created = CartItem.objects.get_or_create(user=self.user, producto=producto)
+            if not created:
+                item.quantity += quantity
+            item.save()
         else:
-            self.cart[producto_id] = {
-                'nombre': producto.nombre,
-                'precio': str(producto.precio),  # Guardar como string para evitar errores
-                'quantity': 1
-            }
-        self.save()
+            cart = self.request.session.get('cart', {})
+            product_id = str(producto.id)
+            cart[product_id] = cart.get(product_id, 0) + quantity
+            self.request.session['cart'] = cart
 
-    def save(self):
-        self.session.modified = True
-
-    def remove(self, producto):
-        producto_id = str(producto.id)
-        if producto_id in self.cart:
-            del self.cart[producto_id]
-            self.save()
+    def get_items(self):
+        if self.user.is_authenticated:
+            return CartItem.objects.filter(user=self.user)
+        else:
+            cart = self.request.session.get('cart', {})
+            productos = Producto.objects.filter(id__in=cart.keys())
+            return [{'producto': p, 'quantity': cart[str(p.id)]} for p in productos]
 
     def clear(self):
-        self.session['cart'] = {}
-        self.save()
-
-    def __iter__(self):
-        from .models import Producto
-        producto_ids = self.cart.keys()
-        productos = Producto.objects.filter(id__in=producto_ids)
-
-        for producto in productos:
-            item = self.cart[str(producto.id)].copy()
-            item['producto'] = producto  # Se usa solo aquí, no se guarda en sesión
-            item['total'] = float(item['precio']) * item['quantity']
-            yield item
+        if self.user.is_authenticated:
+            CartItem.objects.filter(user=self.user).delete()
+        else:
+            self.request.session['cart'] = {}
 
     def __len__(self):
-        return sum(item['quantity'] for item in self.cart.values())
-
+        if self.user.is_authenticated:
+            return sum(item.quantity for item in CartItem.objects.filter(user=self.user))
+        else:
+            return sum(self.request.session.get('cart', {}).values())
+        
     def get_total(self):
-        return sum(float(item['precio']) * item['quantity'] for item in self.cart.values())
+        if self.user.is_authenticated:
+            return sum(item.total() for item in CartItem.objects.filter(user=self.user))
+        else:
+            cart = self.request.session.get('cart', {})
+            productos = Producto.objects.filter(id__in=cart.keys())
+            return sum(p.precio * cart[str(p.id)] for p in productos)

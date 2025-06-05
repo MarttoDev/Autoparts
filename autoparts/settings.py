@@ -1,29 +1,16 @@
 import os
 from pathlib import Path
 
-# Agregados para desarrollo:
-DEBUG = True  # Asegúrate de que esté en True
-ALLOWED_HOSTS = ['*']  # Permite todas las conexiones (solo para desarrollo)
-SECURE_SSL_REDIRECT = False  # Desactiva HTTPS
+DEBUG = True
+ALLOWED_HOSTS = ['*']
+SECURE_SSL_REDIRECT = False
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-ct#-0hiwb=t@w+c$soke4ryg&zk%15o50$@!6293#og3%-1p0i'
-
-# Ya no hace falta cambiar estas dos, las tienes arriba:
-# DEBUG = True
-# ALLOWED_HOSTS = []
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -50,16 +37,13 @@ ROOT_URLCONF = 'autoparts.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # Directorio donde están tus templates (index.html, etc.)
         'DIRS': [os.path.join(BASE_DIR, 'autoapp', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.request',  # Necesario para request en templates
-                'django.contrib.auth.context_processors.auth', # Datos de usuario en templates
-                'django.contrib.messages.context_processors.messages', # Mensajes de Django
-
-                # <<< NUEVO: Context processor para el carrito, para que esté disponible en todas las plantillas >>>
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
                 'autoapp.context_processors.cart_context',
             ],
         },
@@ -68,8 +52,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'autoparts.wsgi.application'
 
-
-# Database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -77,31 +59,30 @@ DATABASES = {
     }
 }
 
+AUTH_PASSWORD_VALIDATORS = []
 
-# Password validation
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
-]
-
-
-# Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-
-# <<< NUEVO: Aquí le decimos a Django dónde buscar tus archivos estáticos adicionales (en autoapp/static) >>>
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'autoapp', 'static'),
 ]
 
-
-# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+# >>> CONFIGURACIÓN PARA CONSERVAR SESIÓN TRAS LOGIN <<<
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 3600  # 1 hora (puedes ajustar)
+SESSION_COOKIE_SECURE = False  # Solo para desarrollo
+SESSION_COOKIE_NAME = 'autoparts_session'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]

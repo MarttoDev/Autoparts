@@ -1,32 +1,58 @@
 import uuid
 from django.http import HttpResponse
-import pprint
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Producto
+from .models import Producto,CartItem
 from .cart import Cart
 from transbank.webpay.webpay_plus.transaction import Transaction
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.forms import UserCreationForm
+from .forms import RegistroUsuarioForm
+from django.contrib.auth.decorators import login_required
 
-# Función para obtener una instancia de Transaction en modo integración (sandbox)
 def get_transaction():
     return Transaction.build_for_integration(
         commerce_code="597055555532",
         api_key="1234567890abcdef1234567890abcdef"
     )
 
+@login_required
+def add_to_cart(request, product_id):
+    producto = Producto.objects.get(pk=product_id)
+    cart_item, created = CartItem.objects.get_or_create(
+        user=request.user,
+        producto=producto,
+        defaults={'quantity': 1}
+    )
+    if not created:
+        cart_item.quantity += 1
+        cart_item.save()
+
+    return redirect('cart_detail')
+
 
 def index(request):
     productos = Producto.objects.all()
     return render(request, 'index.html', {'productos': productos})
 
+def register(request):
+    if request.method == 'POST':
+        form = RegistroUsuarioForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+    else:
+        form = RegistroUsuarioForm()
+    return render(request, 'registration/register.html', {'form': form})
+
 def cart_view(request):
     return render(request, 'autoapp/cart.html')
 
 def add_to_cart(request, product_id):
-    producto = get_object_or_404(Producto, pk=product_id)
+    producto = Producto.objects.get(id=product_id)
     cart = Cart(request)
     cart.add(producto)
     return redirect('index')
+    
 
 def update_cart_item(request, product_id):
     if request.method == 'POST':
@@ -47,12 +73,11 @@ def remove_from_cart(request, product_id):
     request.session.modified = True
     return redirect('cart_detail')
 
+@login_required
 def cart_detail(request):
     cart = Cart(request)
-    return render(request, 'autoapp/cart.html', {
-        'cart_items': list(cart),
-        'cart_total': cart.get_total()
-    })
+    items = cart.get_items()
+    return render(request, 'cart.html', {'cart_items': items})
 
 def limpiar_sesion(request):
     request.session.flush()

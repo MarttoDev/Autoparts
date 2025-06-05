@@ -11,6 +11,20 @@
 
 <header>
   <div class="logo">AutoParts</div>
+    <ul style="list-style: none; display: flex; justify-content: flex-end; gap: 1rem; margin: 0;">
+    {% if user.is_authenticated %}
+      <li style="color: white;">Hola, {{ user.username }}</li>
+      <form method="post" action="{% url 'logout' %}" style="display: inline;">
+  {% csrf_token %}
+  <button type="submit" style="background: none; border: none; color: white; cursor: pointer;">
+    Cerrar sesión
+  </button>
+</form>
+    {% else %}
+      <li><a href="{% url 'login' %}" style="color: white; text-decoration: none;">Iniciar sesión</a></li>
+      <li><a href="{% url 'register' %}" style="color: white; text-decoration: none;">Registrarse</a></li>
+    {% endif %}
+  </ul>
   <a href="{% url 'cart_detail' %}" class="cart">
     Carrito ({{ cart_item_count }})
   </a>
