@@ -12,7 +12,7 @@ class Producto(models.Model):
     codigo_marca = models.CharField(max_length=20)
     nombre = models.CharField(max_length=200)
     descripcion = models.TextField()
-    imagen = models.URLField(blank=True, null=True)
+    imagen = models.ImageField(upload_to='productos/', blank=True, null=True)
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, null=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default=0)

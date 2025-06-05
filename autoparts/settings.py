@@ -1,6 +1,11 @@
 import os
 from pathlib import Path
 
+# Agregados para desarrollo:
+DEBUG = True  # Asegúrate de que esté en True
+ALLOWED_HOSTS = ['*']  # Permite todas las conexiones (solo para desarrollo)
+SECURE_SSL_REDIRECT = False  # Desactiva HTTPS
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -11,11 +16,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-ct#-0hiwb=t@w+c$soke4ryg&zk%15o50$@!6293#og3%-1p0i'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Ya no hace falta cambiar estas dos, las tienes arriba:
+# DEBUG = True
+# ALLOWED_HOSTS = []
 
-ALLOWED_HOSTS = []
-
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Application definition
 

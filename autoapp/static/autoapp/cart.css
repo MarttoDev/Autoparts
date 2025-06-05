@@ -1,0 +1,116 @@
+:root {
+  --burdeos: #800020;
+  --burdeos-claro: #a42d40;
+  --burdeos-oscuro: #4b0013;
+  --gris-fondo: #fafafa;
+  --gris-claro: #e5e5e5;
+  --texto-principal: #2c2c2c;
+  --texto-secundario: #555555;
+  --blanco: #ffffff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--gris-fondo);
+  color: var(--texto-principal);
+  padding: 20px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--burdeos);
+}
+
+header h1 {
+  font-size: 2rem;
+  color: var(--burdeos-oscuro);
+}
+
+header a {
+  text-decoration: none;
+  background-color: var(--burdeos);
+  color: var(--blanco);
+  padding: 10px 16px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+header a:hover {
+  background-color: var(--burdeos-claro);
+}
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: var(--blanco);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--gris-claro);
+}
+
+th {
+  background-color: var(--burdeos-claro);
+  color: var(--blanco);
+  font-weight: 600;
+}
+
+td {
+  color: var(--texto-secundario);
+}
+
+form button {
+  background-color: var(--burdeos);
+  color: var(--blanco);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+form button:hover {
+  background-color: var(--burdeos-oscuro);
+}
+
+p strong {
+  font-size: 1.2rem;
+  color: var(--burdeos-oscuro);
+}
+
+a[href*="pagar"] {
+  display: inline-block;
+  margin-top: 15px;
+  background-color: var(--burdeos);
+  color: var(--blanco);
+  padding: 12px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+a[href*="pagar"]:hover {
+  background-color: var(--burdeos-claro);
+}

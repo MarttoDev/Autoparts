@@ -1,19 +1,26 @@
 import uuid
+from django.http import HttpResponse
+import pprint
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Producto
 from .cart import Cart
 from transbank.webpay.webpay_plus.transaction import Transaction
 from django.views.decorators.csrf import csrf_exempt
 
-# Usa el método build_for_integration sin pasar credenciales para modo test
-transaction = Transaction.build_for_integration(
-    commerce_code='597055555532',
-    api_key='9d4f5383f13b4f8b987a787c5e54589d'
-)
+# Función para obtener una instancia de Transaction en modo integración (sandbox)
+def get_transaction():
+    return Transaction.build_for_integration(
+        commerce_code="597055555532",
+        api_key="1234567890abcdef1234567890abcdef"
+    )
+
 
 def index(request):
     productos = Producto.objects.all()
     return render(request, 'index.html', {'productos': productos})
+
+def cart_view(request):
+    return render(request, 'autoapp/cart.html')
 
 def add_to_cart(request, product_id):
     producto = get_object_or_404(Producto, pk=product_id)
@@ -53,19 +60,16 @@ def limpiar_sesion(request):
 
 def iniciar_pago(request):
     cart = Cart(request)
-    total = int(cart.get_total())  # <-- asegúrate que sea int
+    total = int(cart.get_total())  # ¡Asegúrate de que sea ENTERO!
+    
+    buy_order = str(uuid.uuid4())[:26]  # Genera una orden única
+    session_id = request.session.session_key or str(uuid.uuid4())
+    return_url = request.build_absolute_uri('/webpay/retorno/')  # IMPORTANTE: URL absoluta
 
-    if total <= 0:
-        return render(request, 'webpay/error.html', {'mensaje': 'El carrito está vacío.'})
-
-    buy_order = str(uuid.uuid4()).replace('-', '')[:26]
-
-    # Forzar generación de session_key si no existe
-    if not request.session.session_key:
-        request.session.save()
-    session_id = request.session.session_key
-
-    return_url = request.build_absolute_uri('/webpay/retorno/')
+    transaction = Transaction.build_for_integration(
+        commerce_code="597055555532",  # Código de prueba
+        api_key="579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C"  # API Key de prueba
+    )
 
     try:
         response = transaction.create(
@@ -74,28 +78,35 @@ def iniciar_pago(request):
             amount=total,
             return_url=return_url
         )
+        return redirect(f"{response['url']}?token_ws={response['token']}")  # Redirige a WebPay
     except Exception as e:
-        return render(request, 'webpay/error.html', {'mensaje': f'Error al crear transacción: {e}'})
+        return render(request, 'webpay/error.html', {'mensaje': f'Error: {str(e)}'})
 
-    token = response.token
-    url = response.url
-
-    return redirect(f"{url}?token_ws={token}")
 
 @csrf_exempt
 def retorno_pago(request):
-    token = request.POST.get("token_ws")
-
-    if not token:
-        return render(request, "webpay/error.html", {"mensaje": "Token no recibido."})
-
-    try:
-        response = transaction.commit(token)
-    except Exception as e:
-        return render(request, "webpay/error.html", {"mensaje": f"Error al confirmar pago: {e}"})
-
-    if response.status == 'AUTHORIZED':
-        request.session['cart'] = {}
-        return render(request, "webpay/exito.html", {"response": response})
-    else:
-        return render(request, "webpay/error.html", {"mensaje": "Pago no autorizado."})
+    # Depuración inmediata (verás esto en la consola de Django)
+    print("\n🔥 Datos recibidos:", request.POST or request.GET)
+    
+    # Maneja tanto POST (éxito) como GET (usuario volvió manualmente)
+    token = request.POST.get("token_ws") or request.GET.get("token_ws")
+    
+    if token:
+        try:
+            transaction = Transaction.build_for_integration(
+                commerce_code="597055555532",
+                api_key="579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C"
+            )
+            response = transaction.commit(token)
+            
+            if response.get("status") == "AUTHORIZED":
+                request.session["cart"] = {}
+                return render(request, "webpay/exito.html", {"response": response})
+            return render(request, "webpay/error.html", {"mensaje": "Pago no autorizado"})
+        except Exception as e:
+            return render(request, "webpay/error.html", {"mensaje": f"Error: {str(e)}"})
+    
+    # Si no hay token, muestra una página genérica (para evitar errores)
+    return render(request, "webpay/error.html", {
+        "mensaje": "Proceso completado. Verifica en Transbank si el pago fue exitoso."
+    })
