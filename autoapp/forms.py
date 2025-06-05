@@ -18,3 +18,9 @@ class RegistroUsuarioForm(UserCreationForm):
             'password2': None,
         }
 
+class DatosPersonalesForm(forms.Form):
+    nombre = forms.CharField(max_length=100)
+    email = forms.EmailField()
+    telefono = forms.CharField(max_length=20)
+    direccion = forms.CharField(widget=forms.Textarea)
+

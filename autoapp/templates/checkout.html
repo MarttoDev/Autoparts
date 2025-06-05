@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Checkout - AutoParts</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      margin: 0; padding: 2rem;
+      color: #333;
+    }
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid #2980b9;
+      padding-bottom: 0.5rem;
+    }
+    form {
+      background: white;
+      padding: 1.5rem 2rem;
+      border-radius: 8px;
+      max-width: 600px;
+      margin: 0 auto;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+    form p {
+      margin: 0.8rem 0;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    input[type="text"], input[type="email"], input[type="tel"], textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+    ul.cart-items {
+      list-style: none;
+      padding-left: 0;
+      margin-bottom: 1.5rem;
+      border-top: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    ul.cart-items li {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      font-weight: 500;
+    }
+    ul.cart-items li:last-child {
+      border-bottom: none;
+    }
+    .total {
+      text-align: right;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      font-size: 1.2rem;
+      color: #2980b9;
+    }
+    button[type="submit"] {
+      background-color: #2980b9;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1.1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+      font-weight: 600;
+    }
+    button[type="submit"]:hover {
+      background-color: #1c5980;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Datos para el pago</h2>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <h3>Productos en tu carrito</h3>
+    <ul class="cart-items">
+      {% for item in cart_items %}
+      <li>
+        <span>{{ item.producto.nombre }} x {{ item.quantity }}</span>
+        <span>${{ item.producto.precio|floatformat:2 }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <p class="total">Total a pagar: ${{ cart_total|floatformat:2 }}</p>
+
+    <button type="submit">Continuar al pago</button>
+  </form>
+
+</body>
+</html>
