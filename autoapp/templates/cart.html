@@ -30,8 +30,8 @@
             <tr>
                 <td>{{ item.producto.nombre }}</td>
                 <td>{{ item.quantity }}</td>
-                <td>${{ item.producto.precio }}</td>
-                <td>${{ item.total }}</td>
+                <td>${{ item.producto.precio|floatformat:0 }}</td>
+                <td>${{ item.total|floatformat:0 }}</td>
                 <td>
                     <form action="{% url 'remove_from_cart' item.producto.id %}" method="post" style="display:inline;">
                         {% csrf_token %}
@@ -44,7 +44,7 @@
     </table>
 
     {% if cart_total > 0 %}
-      <p><strong>Total a pagar: ${{ cart_total }}</strong></p>
+      <p><strong>Total a pagar: ${{ cart_total|floatformat:0 }}</strong></p>
       <form action="{% url 'iniciar_pago' %}" method="post">
         {% csrf_token %}
         <button type="submit">Ir a pagar</button>

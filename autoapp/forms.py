@@ -9,9 +9,15 @@ class ProductoForm(forms.ModelForm):
         fields = ['nombre', 'descripcion', 'precio', 'imagen', 'stock']
 
 class RegistroUsuarioForm(UserCreationForm):
+    es_mayorista = forms.BooleanField(
+        required=False,
+        label='¿Eres mayorista?',
+        widget=forms.CheckboxInput()
+    )
+
     class Meta:
         model = User
-        fields = ['username', 'password1', 'password2']
+        fields = ['username', 'password1', 'password2', 'es_mayorista']
         help_texts = {
             'username': None,
             'password1': None,

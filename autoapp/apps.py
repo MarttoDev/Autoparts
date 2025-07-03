@@ -6,3 +6,4 @@ class AutoappConfig(AppConfig):
 
     def ready(self):
         import autoapp.signals
+

@@ -19,8 +19,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'autoapp',
     'rest_framework',
+    'autoapp.apps.AutoappConfig', 
 ]
 
 MIDDLEWARE = [
@@ -62,7 +62,7 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = []
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-es'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True

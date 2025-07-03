@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from rest_framework import generics
 import uuid
+from .firebase_services import guardar_compra_en_firebase
 
 from .models import Producto, CartItem, Categoria
 from .serializers import ProductoSerializer
@@ -27,6 +28,10 @@ def index(request):
     categorias_filtradas = request.GET.getlist('categorias')  # lista de IDs como strings
     precio_min = request.GET.get('precio_min')
     precio_max = request.GET.get('precio_max')
+
+    es_mayorista = False
+    if request.user.is_authenticated and hasattr(request.user, 'perfilusuario'):
+        es_mayorista = request.user.perfilusuario.es_mayorista
 
     # Aplicar filtro por categorías
     categorias_filtradas = request.GET.getlist('categorias')
@@ -64,7 +69,8 @@ def index(request):
         'categorias_filtradas': categorias_filtradas,
         'precio_min': precio_min,
         'precio_max': precio_max,
-        'cart_item_count': request.session.get('cart_item_count', 0),  # si estás usando carrito
+        'cart_item_count': request.session.get('cart_item_count', 0),
+        'es_mayorista': es_mayorista,
     }
 
     return render(request, 'index.html', context)
@@ -152,7 +158,7 @@ def cart_detail(request):
     return render(request, 'cart.html', {
         'cart_items': cart.get_items(),
         'cart_total': cart.get_total(),
-        'items_count': len(cart)  # Ahora esto funcionará
+        'items_count': len(cart)  
     })
 
 
@@ -188,7 +194,6 @@ def iniciar_pago(request):
 
 @csrf_exempt
 def retorno_pago(request):
-    print("\n🔥 Datos recibidos:", request.POST or request.GET)
 
     token = request.POST.get("token_ws") or request.GET.get("token_ws")
 
@@ -201,15 +206,38 @@ def retorno_pago(request):
             response = transaction.commit(token)
 
             if response.get("status") == "AUTHORIZED":
-                request.session["cart"] = {}
+                cart = Cart(request)
+                items = cart.get_items()
+                total = cart.get_total()
+
+                # Guardar compra en Firebase
+                guardar_compra_en_firebase(request.user, items, total, response)
+
+
+                for item in items:
+                    producto = item['producto']
+                    cantidad = item['quantity']
+
+                    producto.stock -= cantidad
+                    producto.save()
+
+                    from .firebase_services import actualizar_stock_en_firebase
+                    actualizar_stock_en_firebase(producto)
+                    request.session['cart'] = {}
+                    CartItem.objects.filter(user=request.user).delete()
+
                 return render(request, "webpay/exito.html", {"response": response})
+
             return render(request, "webpay/error.html", {"mensaje": "Pago no autorizado"})
+
         except Exception as e:
             return render(request, "webpay/error.html", {"mensaje": f"Error: {str(e)}"})
 
     return render(request, "webpay/error.html", {
         "mensaje": "Proceso completado. Verifica en Transbank si el pago fue exitoso."
     })
+
+
 
 
 class ProductoListAPI(generics.ListAPIView):

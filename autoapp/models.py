@@ -56,3 +56,12 @@ class OrdenItem(models.Model):
 
     def __str__(self):
         return f'{self.cantidad} x {self.producto.nombre} (Orden #{self.orden.id})'
+
+class PerfilUsuario(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    es_mayorista = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'Perfil de {self.user.username}'
+    
+precio_mayorista = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
