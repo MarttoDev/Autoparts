@@ -28,7 +28,36 @@ class Cart:
                     'price': str(producto.precio),
                     'nombre': producto.nombre
                 }
-            self.request.session['cart'] = cart
+            self.save_session(cart)
+
+    def update(self, producto_id, quantity):
+        try:
+            producto = Producto.objects.get(id=producto_id)
+        except Producto.DoesNotExist:
+            return  # Producto no existe, no hacer nada
+
+        if quantity > producto.stock:
+            quantity = producto.stock
+
+        if self.user.is_authenticated:
+            try:
+                item = CartItem.objects.get(user=self.user, producto_id=producto_id)
+                if quantity > 0:
+                    item.quantity = quantity
+                    item.save()
+                else:
+                    item.delete()
+            except CartItem.DoesNotExist:
+                pass
+        else:
+            cart = self.request.session.get('cart', {})
+            product_id = str(producto_id)
+            if product_id in cart:
+                if quantity > 0:
+                    cart[product_id]['quantity'] = quantity
+                else:
+                    del cart[product_id]
+                self.save_session(cart)
 
     def get_items(self):
         items = []
@@ -74,10 +103,15 @@ class Cart:
             product_id = str(producto.id)
             if product_id in cart:
                 del cart[product_id]
-                self.request.session['cart'] = cart
+                self.save_session(cart)
 
     def clear(self):
         if self.user.is_authenticated:
             CartItem.objects.filter(user=self.user).delete()
         else:
             self.request.session['cart'] = {}
+
+    def save_session(self, cart):
+        """Guardar el carrito en la sesión y marcarla como modificada"""
+        self.request.session['cart'] = cart
+        self.request.session.modified = True

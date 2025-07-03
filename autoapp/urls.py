@@ -18,4 +18,8 @@ urlpatterns = [
     path('productos/categoria/<int:categoria_id>/', views.productos_por_categoria, name='productos_por_categoria'),
     path('categoria/<slug:slug>/', views.productos_por_categoria, name='categoria'),
     path('productos/filtrar/', views.productos_filtrados, name='productos_filtrados'),
+    path('cart/update/<int:producto_id>/', views.update_cart_quantity, name='update_cart_quantity'),
+    path('guardar-direccion/', views.guardar_direccion, name='guardar_direccion'),
+    path('carrito/', views.cart_detail, name='cart_detail'),
+    path('guardar-direccion/', views.guardar_direccion, name='guardar_direccion'),
 ]

@@ -1,11 +1,57 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Carrito de Compras</title>
     <link rel="stylesheet" href="{% static 'autoapp/cart.css' %}">
+    <style>
+      /* Estilos para mensajes */
+      .messages {
+        list-style: none;
+        padding: 10px;
+        margin-bottom: 1rem;
+        border-radius: 4px;
+      }
+      .messages li.error {
+        background-color: #f8d7da;
+        color: #842029;
+        border: 1px solid #f5c2c7;
+      }
+
+      /* Estilos para formulario dirección */
+      .direccion-form {
+        background: #fff;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        border-radius: 8px;
+        max-width: 600px;
+      }
+      .direccion-form label {
+        display: block;
+        margin-bottom: 0.25rem;
+        font-weight: bold;
+      }
+      .direccion-form input {
+        width: 100%;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+      }
+      .direccion-form button {
+        background: #007BFF;
+        color: white;
+        border: none;
+        padding: 0.7rem 1.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .direccion-form button:hover {
+        background: #0056b3;
+      }
+    </style>
 </head>
 <body>
 <header>
@@ -14,6 +60,14 @@
 </header>
 
 <main>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
     {% if cart_items %}
     <table>
         <thead>
@@ -29,7 +83,13 @@
             {% for item in cart_items %}
             <tr>
                 <td>{{ item.producto.nombre }}</td>
-                <td>{{ item.quantity }}</td>
+                <td>
+                    <form action="{% url 'update_cart_quantity' item.producto.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" style="width: 60px;">
+                        <button type="submit">Actualizar</button>
+                    </form>
+                </td>
                 <td>${{ item.producto.precio|floatformat:0 }}</td>
                 <td>${{ item.total|floatformat:0 }}</td>
                 <td>
@@ -43,15 +103,27 @@
         </tbody>
     </table>
 
-    {% if cart_total > 0 %}
-      <p><strong>Total a pagar: ${{ cart_total|floatformat:0 }}</strong></p>
-      <form action="{% url 'iniciar_pago' %}" method="post">
-        {% csrf_token %}
-        <button type="submit">Ir a pagar</button>
-      </form>
-    {% else %}
-      <p>Tu carrito está vacío.</p>
-    {% endif %}
+    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem;">
+        <p><strong>Total a pagar: ${{ cart_total|floatformat:0 }}</strong></p>
+        <form action="{% url 'iniciar_pago' %}" method="post" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit">Ir a pagar</button>
+        </form>
+    </div>
+
+    <!-- Formulario dirección -->
+    <section class="direccion-form">
+      <h2>Datos de envío</h2>
+<form action="{% url 'guardar_direccion' %}" method="post">
+  {% csrf_token %}
+  <input type="text" name="nombre" placeholder="Nombre completo" required>
+  <input type="text" name="direccion" placeholder="Dirección" required>
+  <input type="text" name="ciudad" placeholder="Ciudad" required>
+  <input type="text" name="codigo_postal" placeholder="Código Postal" required>
+  <input type="text" name="telefono" placeholder="Teléfono" required>
+  <button type="submit">Guardar Dirección</button>
+</form>
+    </section>
 
     {% else %}
       <p>Tu carrito está vacío.</p>

@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from rest_framework import generics
 import uuid
 from .firebase_services import guardar_compra_en_firebase
+from django.contrib import messages
 
 from .models import Producto, CartItem, Categoria
 from .serializers import ProductoSerializer
@@ -24,55 +25,22 @@ def index(request):
     productos = Producto.objects.all()
     categorias = Categoria.objects.all()
 
-    # Obtener filtros desde la URL
-    categorias_filtradas = request.GET.getlist('categorias')  # lista de IDs como strings
-    precio_min = request.GET.get('precio_min')
-    precio_max = request.GET.get('precio_max')
-
     es_mayorista = False
     if request.user.is_authenticated and hasattr(request.user, 'perfilusuario'):
         es_mayorista = request.user.perfilusuario.es_mayorista
 
-    # Aplicar filtro por categorías
-    categorias_filtradas = request.GET.getlist('categorias')
+    # Filtros (ya los tienes)
 
-    if categorias_filtradas:
-        # Si hay categorías seleccionadas, filtras
-        productos = productos.filter(categoria__id__in=categorias_filtradas)
-    else:
-        # Si no hay categorías seleccionadas, muestras todos y marcas todas las categorías
-        categorias_filtradas = [str(cat.id) for cat in categorias]
-
-    precio_min = request.GET.get('precio_min')
-    precio_max = request.GET.get('precio_max')
-
-    if precio_min:
-        try:
-            precio_min_val = float(precio_min)
-            if precio_min_val > 0:  # Solo filtrar si es mayor que cero
-                productos = productos.filter(precio__gte=precio_min_val)
-        except ValueError:
-            pass
-
-    if precio_max:
-        try:
-            precio_max_val = float(precio_max)
-            if precio_max_val > 0:  # Solo filtrar si es mayor que cero
-                productos = productos.filter(precio__lte=precio_max_val)
-        except ValueError:
-            pass
-
+    # Agregar precio con descuento
+    for producto in productos:
+        producto.precio_mayorista = producto.precio * 0.7 if es_mayorista else producto.precio
 
     context = {
         'productos': productos,
         'categorias': categorias,
-        'categorias_filtradas': categorias_filtradas,
-        'precio_min': precio_min,
-        'precio_max': precio_max,
         'cart_item_count': request.session.get('cart_item_count', 0),
         'es_mayorista': es_mayorista,
     }
-
     return render(request, 'index.html', context)
 
 
@@ -155,10 +123,30 @@ def productos_api(request):
 @login_required
 def cart_detail(request):
     cart = Cart(request)
+    items = cart.get_items()
+    total_quantity = sum(item['quantity'] for item in items)
+    
+    es_mayorista = False
+    if hasattr(request.user, 'perfilusuario'):
+        es_mayorista = request.user.perfilusuario.es_mayorista
+
+    if es_mayorista and total_quantity < 10:
+        messages.error(request, "La compra mínima para mayoristas es de 10 productos.")
+        return redirect('cart_view')  # Cambia esta URL si quieres, para volver a la vista del carrito
+
+    # Calcular total con descuento si aplica
+    total = 0
+    for item in items:
+        precio_unitario = item['producto'].precio
+        if es_mayorista:
+            precio_unitario *= 0.7  # 30% descuento
+        total += precio_unitario * item['quantity']
+
     return render(request, 'cart.html', {
-        'cart_items': cart.get_items(),
-        'cart_total': cart.get_total(),
-        'items_count': len(cart)  
+        'cart_items': items,
+        'cart_total': total,
+        'items_count': len(items),
+        'es_mayorista': es_mayorista,
     })
 
 
@@ -167,8 +155,20 @@ def limpiar_sesion(request):
     return redirect('index')
 
 
+@login_required
 def iniciar_pago(request):
     cart = Cart(request)
+    total_items = sum(item['quantity'] for item in cart.get_items())
+
+    es_mayorista = False
+    if request.user.is_authenticated and hasattr(request.user, 'perfilusuario'):
+        es_mayorista = request.user.perfilusuario.es_mayorista
+
+    # Validar cantidad mínima para mayoristas
+    if es_mayorista and total_items < 10:
+        mensaje = "Para usuarios mayoristas la compra mínima es de 10 productos."
+        return render(request, 'autoapp/cart.html', {'mensaje_error': mensaje, 'cart_items': cart.get_items(), 'cart_total': cart.get_total()})
+
     total = int(cart.get_total())
 
     buy_order = str(uuid.uuid4())[:26]  # Genera una orden única
@@ -192,6 +192,7 @@ def iniciar_pago(request):
         return render(request, 'webpay/error.html', {'mensaje': f'Error: {str(e)}'})
 
 
+
 @csrf_exempt
 def retorno_pago(request):
 
@@ -210,9 +211,11 @@ def retorno_pago(request):
                 items = cart.get_items()
                 total = cart.get_total()
 
-                # Guardar compra en Firebase
-                guardar_compra_en_firebase(request.user, items, total, response)
+                # Obtener dirección guardada en sesión, si existe
+                direccion_envio = request.session.get('direccion_envio', {})
 
+                # Guardar compra en Firebase, enviando la dirección también
+                guardar_compra_en_firebase(request.user, items, total, response, direccion_envio)
 
                 for item in items:
                     producto = item['producto']
@@ -221,10 +224,13 @@ def retorno_pago(request):
                     producto.stock -= cantidad
                     producto.save()
 
-                    from .firebase_services import actualizar_stock_en_firebase
                     actualizar_stock_en_firebase(producto)
-                    request.session['cart'] = {}
-                    CartItem.objects.filter(user=request.user).delete()
+
+                # Limpiar carrito y sesión dirección
+                request.session['cart'] = {}
+                CartItem.objects.filter(user=request.user).delete()
+                if 'direccion_envio' in request.session:
+                    del request.session['direccion_envio']
 
                 return render(request, "webpay/exito.html", {"response": response})
 
@@ -295,3 +301,69 @@ def tienda_view(request):
         'precio_max': precio_max,
     }
     return render(request, 'autoapp/tienda.html', context)
+
+@login_required
+def update_cart_quantity(request, producto_id):
+    if request.method == 'POST':
+        quantity = int(request.POST.get('quantity', 1))
+        producto = Producto.objects.get(id=producto_id)
+        if quantity > producto.stock:
+            messages.error(request, f"Solo quedan {producto.stock} unidades disponibles.")
+            quantity = producto.stock
+        cart = Cart(request)
+        cart.update(producto_id, quantity)
+    return redirect('cart_detail')
+
+@login_required
+def guardar_direccion(request):
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        direccion = request.POST.get('direccion')
+        ciudad = request.POST.get('ciudad')
+        codigo_postal = request.POST.get('codigo_postal')
+        telefono = request.POST.get('telefono')
+
+        if not all([nombre, direccion, ciudad, codigo_postal, telefono]):
+            messages.error(request, "Por favor completa todos los campos de dirección.")
+            return redirect('cart_detail')
+
+        # Guardar en sesión para usar luego en el pago
+        request.session['direccion_envio'] = {
+            'nombre': nombre,
+            'direccion': direccion,
+            'ciudad': ciudad,
+            'codigo_postal': codigo_postal,
+            'telefono': telefono,
+        }
+        messages.success(request, "Dirección guardada correctamente.")
+        return redirect('cart_detail')
+
+    return redirect('cart_detail')
+
+def guardar_compra_en_firebase(user, items, total, response, direccion_envio):
+    # Aquí conectas a Firebase y guardas los datos de la compra
+    # Por ejemplo:
+    compra_data = {
+        "usuario": user.username,
+        "items": [{"producto": i['producto'].nombre, "cantidad": i['quantity']} for i in items],
+        "total": str(total),
+        "response_pago": response,
+        "direccion_envio": direccion_envio,
+    }
+    # Código para guardar compra_data en Firebase aquí
+    print("Compra guardada en Firebase:", compra_data)
+
+
+def actualizar_stock_en_firebase(producto):
+    """
+    Actualiza el stock de un producto en Firestore.
+    Asume que tienes una colección 'productos' y documentos con ID igual al ID del producto.
+    """
+    try:
+        doc_ref = db.collection('productos').document(str(producto.id))
+        doc_ref.update({
+            'stock': producto.stock
+        })
+        print(f"Stock actualizado en Firebase para producto {producto.nombre} (ID: {producto.id})")
+    except Exception as e:
+        print(f"Error actualizando stock en Firebase: {e}")
