@@ -1,8 +1,9 @@
-from firebase_config import db
+from .firebase_config import db
 from datetime import datetime
 from .models import Producto
 
-def guardar_compra_en_firebase(user, cart_items, total, transbank_response):
+def guardar_compra_en_firebase(user, cart_items, total, transbank_response, direccion_envio):
+    from pprint import pprint
     datos_compra = {
         'usuario': user.username,
         'email': user.email,
@@ -19,10 +20,18 @@ def guardar_compra_en_firebase(user, cart_items, total, transbank_response):
         ],
         'transbank_status': transbank_response.get("status"),
         'orden': transbank_response.get("buy_order"),
+        'direccion_envio': direccion_envio
     }
 
-    print("Datos que se enviarán a Firebase:", datos_compra)
-    db.collection('compras').add(datos_compra)
+    print("➡️ Datos que se enviarán a Firebase:")
+    pprint(datos_compra)
+
+    try:
+        result = db.collection('compras').add(datos_compra)
+        print(f"✅ Compra guardada con ID: {result[1].id}")
+    except Exception as e:
+        print("❌ ERROR guardando en Firebase:", e)
+
 
 def guardar_producto_en_firebase(producto):
     doc_ref = db.collection('productos').document(str(producto.id))

@@ -3,312 +3,179 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoParts - Tienda</title>
-  <link rel="stylesheet" href="{% static 'autoapp/styles.css' %}" />
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      color: #333;
-    }
-
-    header {
-      background: #222;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 2rem;
-      flex-wrap: wrap;
-    }
-
-    .logo {
-      font-size: 1.8rem;
-      font-weight: bold;
-    }
-
-    .top-controls {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    #buscador {
-      padding: 8px;
-      max-width: 300px;
-    }
-
-    .user-controls ul {
-      list-style: none;
-      display: flex;
-      gap: 1rem;
-      margin: 0;
-      padding: 0;
-      align-items: center;
-    }
-
-    .user-controls a,
-    .user-controls button {
-      color: white;
-      background: none;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-    }
-
-    .cart {
-      font-size: 1.2rem;
-      color: white;
-    }
-
-    main {
-      display: flex;
-      gap: 2rem;
-      padding: 2rem;
-    }
-
-    aside {
-      width: 250px;
-      background: white;
-      padding: 1rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-
-    section.productos {
-      flex: 1;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .producto {
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .producto .imagen {
-      width: 100%;
-      height: 150px;
-      background: #eee;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-    }
-
-    .producto img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-    }
-
-    .precio {
-      margin: 0.5rem 0;
-      text-align: center;
-    }
-
-    .precio .tachado {
-      text-decoration: line-through;
-      color: #888;
-    }
-
-    .precio .mayorista {
-      color: green;
-      font-weight: bold;
-    }
-
-    footer {
-      background: #222;
-      color: white;
-      text-align: center;
-      padding: 1rem;
-    }
-
-    button {
-      background: #007BFF;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutoParts</title>
+  <link rel="stylesheet" href="{% static 'autoapp/styles1.css' %}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 
 <body>
-
-<header style="background: #570000;
-background: linear-gradient(90deg, rgba(87, 0, 0, 1) 0%, rgba(189, 149, 149, 1) 50%, rgba(87, 0, 0, 1) 100%);">
-  <div class="logo">
-    <img src="/media/adornos/text.gif" alt="autopars-gif">
-  </div>
-  <img src="https://i.gifer.com/4jwo.gif" alt="Auto animado" style="max-width: 100px; height: auto; display: block; margin: 0 auto;">
-
-  <div class="top-controls">
-    <input type="text" id="buscador" placeholder="Buscar producto...">
-    <div class="user-controls">
-      <ul>
-        {% if user.is_authenticated %}
-          <li>Hola, {{ user.username }}</li>
-          <li>
-            <form method="post" action="{% url 'logout' %}">
-              {% csrf_token %}
-              <button type="submit">Cerrar sesión</button>
-            </form>
-          </li>
-        {% else %}
-          <li><a href="{% url 'login' %}">Iniciar sesión</a></li>
-          <li><a href="{% url 'register' %}">Registrarse</a></li>
-        {% endif %}
-        <li><a href="{% url 'cart_detail' %}" class="cart">🛒 ({{ cart_item_count }})</a></li>
-      </ul>
+  <header class="header">
+    <div class="branding">
+      <h1>AutoParts</h1>
+      <img src="https://i.gifer.com/4jwo.gif" alt="Auto animado" class="auto-img" />
     </div>
-  </div>
-</header>
 
-<!-- Sección bienvenida -->
-<section style="
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  background-color: #f9f9f9;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-">
-  <div style="flex: 1; min-width: 250px; max-width: 400px; display: flex; justify-content: center;">
-    <img src="/media/adornos/serio.jpg" alt="Auto 3" style="max-width: 100%; max-height: 250px; object-fit: contain;">
-  </div>
-  <div style="flex: 2; min-width: 280px; text-align: left;">
-    <h1 style="margin-bottom: 0.5rem; color: #8B0000;">Bienvenido a AutoParts</h1>
-    <p style="font-size: 1.1rem; color: #333;">
-      Encuentra los mejores repuestos y accesorios para tu vehículo a los precios más convenientes.
-      Compra con confianza como cliente regular o mayorista.
-    </p>
-  </div>
-</section>
-
-<main>
-  <aside>
-    <form method="get">
-      <h3>Filtrar por categoría</h3>
-      <ul style="list-style: none; padding-left: 0;">
-        {% for categoria in categorias %}
-        <li>
-          <label>
-            <input type="checkbox" name="categorias" value="{{ categoria.id }}"
-              {% if categoria.id|stringformat:"s" in categorias_filtradas %}checked{% endif %}>
-            {{ categoria.nombre }}
-          </label>
-        </li>
-        {% endfor %}
-      </ul>
-
-      <h3>Filtrar por precio</h3>
-      <label>Precio mínimo:
-        <input type="number" name="precio_min" min="0" step="0.01" value="{{ request.GET.precio_min }}">
-      </label><br>
-      <label>Precio máximo:
-        <input type="number" name="precio_max" min="0" step="0.01" value="{{ request.GET.precio_max }}">
-      </label>
-
-      <div style="margin-top: 1rem;">
-        <button type="submit">Aplicar filtros</button>
-        <a href="{% url 'index' %}" style="margin-left: 1rem; color: #007BFF;">Limpiar</a>
-      </div>
-    </form>
-  </aside>
-
-  <section class="productos">
-    {% for producto in productos %}
-    <div class="producto">
-      <div class="imagen">
-        {% if producto.imagen %}
-          <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-        {% else %}
-          <span style="color: #777;">Sin imagen</span>
-        {% endif %}
-      </div>
-      <h3>{{ producto.nombre }}</h3>
-      <p>{{ producto.marca }}</p>
-      <div class="precio">
-        {% if es_mayorista and producto.precio_mayorista %}
-          <div>
-            <span class="tachado">${{ producto.precio|floatformat:0 }}</span>
-            <span class="mayorista">${{ producto.precio_mayorista|floatformat:0 }}</span>
-          </div>
-          <div><small style="color: green;">30% descuento mayorista</small></div>
-        {% else %}
-          <div><strong>Precio:</strong> ${{ producto.precio|floatformat:0 }}</div>
-        {% endif %}
-      </div>
-      <p>Stock: {{ producto.stock }}</p>
-      <form method="post" action="{% url 'add_to_cart' producto.id %}">
-        {% csrf_token %}
-        <button type="submit">Añadir al carrito</button>
-      </form>
+    <div class="buscador-container">
+      <input type="search" id="buscador" placeholder="Buscar productos">
     </div>
-    {% empty %}
-      <p>No hay productos disponibles.</p>
-    {% endfor %}
-  </section>
+
+
+    <div class="user-panel">
+      {% if user.is_authenticated %}
+        <span class="user-greeting"><i class="fas fa-user"></i> Hola, {{ user.username }}</span>
+        <form method="post" action="{% url 'logout' %}" class="original-form logout-form">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+          </button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}" class="btn btn-primary">
+          <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+        </a>
+        <a href="{% url 'register' %}" class="btn btn-success">
+          <i class="fas fa-user-plus"></i> Registrarse
+        </a>
+      {% endif %}
+
+      <a href="{% url 'cart_detail' %}" class="btn btn-accent cart-btn">
+        <i class="fas fa-shopping-cart"></i> Carrito
+        {% if cart_item_count %}
+          <span class="cart-count">{{ cart_item_count }}</span>
+        {% endif %}
+      </a>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <section class="hero fade-in">
+      <div class="overlay"></div>
+      <div class="hero-content">
+        <h1>El Futuro de los Repuestos</h1>
+        <p>Descubre la experiencia de compra más avanzada del mundo.</p>
+      </div>
+    </section>
+
+    <!-- Banner de marcas -->
+    <section style="padding: 2.5rem 3rem; text-align: center;">
+      <h2>Trabajamos con las mejores marcas</h2>
+      <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 2rem; margin-top: 2rem;">
+        <img src="/media/adornos/logo-toyota.png" alt="toyota" style="height: 40px;">
+        <img src="/media/adornos/logo-ford.png" alt="Ford" style="height: 40px;">
+        <img src="/media/adornos/logo-subaru.png" alt="subaru" style="height: 40px;">
+        <img src="/media/adornos/Kia-logo.png" alt="Kia" style="height: 40px;">
+        <img src="/media/adornos/logo-god.png" alt="Nissan" style="height: 40px;">
+      </div>
+    </section>
 </main>
 
-<!-- Sección Nosotros -->
-<section style="padding: 2.5rem 1rem; background-color: #fff; text-align: center;">
-  <div class="logo">
-    <img src="/media/adornos/victor.jpg" alt="autoparts-banner" style="width: 100%; height: 300px; object-fit: cover;">
-  </div>
-  <div style="max-width: 900px; margin: 0 auto;">
-    <h2 style="color: #8B0000; font-size: 2rem; margin-bottom: 1rem;">Sobre Nosotros</h2>
-    <p style="font-size: 1.1rem; color: #444; line-height: 1.6;">
-      En <strong>AutoParts</strong> somos especialistas en repuestos y accesorios automotrices. Nuestro objetivo es brindarte la mejor atención, calidad y precios competitivos, tanto si eres cliente particular como mayorista.
+  <section>
+    <h2 style="text-align: center;">Catalogo</h2>
+    <div class="catalog-grid">
+      {% for producto in productos %}
+      <article class="card-modern producto">
+        {% if es_mayorista and producto.precio_mayorista %}
+          <div class="mayorista-label">Mayorista</div>
+        {% endif %}
+
+        <div class="product-image">
+          {% if producto.imagen %}
+            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" />
+          {% else %}
+            <i class="fas fa-image placeholder-icon"></i>
+          {% endif %}
+        </div>
+
+        <div class="product-info">
+          <div class="marca">{{ producto.marca }}</div>
+          <h3>{{ producto.nombre }}</h3>
+
+          <div class="precio">
+            {% if es_mayorista and producto.precio_mayorista %}
+              <div class="precio-mayorista">
+                <span class="precio-regular">${{ producto.precio|floatformat:0 }}</span>
+                <span class="precio-descuento">${{ producto.precio_mayorista|floatformat:0 }}</span>
+                <span class="descuento-label">-30%</span>
+              </div>
+            {% else %}
+              <div class="precio-normal">${{ producto.precio|floatformat:0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="stock-info">
+            <div class="stock-dot"></div>
+            <span>{{ producto.stock }} disponibles</span>
+          </div>
+
+          <form method="post" action="{% url 'add_to_cart' producto.id %}" class="original-form add-to-cart-form">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-add-cart">
+              <i class="fas fa-cart-plus"></i> Añadir al Carrito
+            </button>
+          </form>
+        </div>
+      </article>
+      {% empty %}
+      <div class="empty-results">
+        <i class="fas fa-search"></i>
+        <h3>No hay productos disponibles</h3>
+        <p>Intenta ajustar tus filtros de búsqueda</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section id="nosotros">
+    <h2>Sobre Nosotros</h2>
+    <p>
+      En <strong>Autopartys</strong> nos dedicamos a ofrecer las mejores autopartes para que tu vehículo siempre esté en óptimas condiciones. 
+      Contamos con una amplia gama de productos de alta calidad, asesoría especializada y un compromiso con la satisfacción de nuestros clientes.
     </p>
+    <p>
+      Nuestro equipo está formado por expertos apasionados por la automoción, siempre listos para ayudarte a encontrar lo que necesitas, ya seas particular o mayorista.
+    </p>
+    <p>
+      ¡Gracias por confiar en nosotros y ser parte de nuestra familia de clientes satisfechos!
+    </p>
+  </section>
+
+  <footer>
+    <div class="footer-container">
+      <div class="footer-section">
+        <h3>Autopartys</h3>
+        <p>Calidad y confianza en autopartes para todos.</p>
+      </div>
+      <div class="footer-section">
+        <h4>Contacto</h4>
+        <p>📍 Calle Falsa 123, Ciudad</p>
+        <p>📞 +56 9 1234 5678</p>
+        <p>✉️ contacto@autopartys.cl</p>
+      </div>
+      <div class="footer-section">
+        <h4>Síguenos</h4>
+        <p>
+          <a href="#" aria-label="Facebook" class="social-link">Facebook</a><br/>
+          <a href="#" aria-label="Instagram" class="social-link">Instagram</a><br/>
+          <a href="#" aria-label="Twitter" class="social-link">Twitter</a>
+        </p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 Autopartys. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+
+
+
+
+  <div class="whatsapp-btn-container">
+    <a href="https://wa.me/56932588583" target="_blank" class="whatsapp-btn">
+      <i class="fab fa-whatsapp"></i>
+    </a>
   </div>
-</section>
 
-<footer>
-  &copy; 2025 AutoParts. Todos los derechos reservados.
-</footer>
-
-<script src="{% static 'autoapp/script.js' %}"></script>
-
-<!-- Botón WhatsApp -->
-<a href="https://wa.me/56932588583" target="_blank" style="
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: #25D366;
-  color: white;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  z-index: 1000;
-  text-decoration: none;
-">
-  <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp" style="width: 35px; height: 35px;">
-</a>
-
+  <script src="{% static 'autoapp/script.js' %}" defer></script>
 </body>
 </html>

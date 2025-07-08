@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Compras Firebase</title>
+</head>
+<body>
+    <h1>Compras en Firebase</h1>
+    {% if compras %}
+        <ul>
+            {% for compra in compras %}
+                <li>
+                    <strong>Usuario:</strong> {{ compra.usuario }}<br>
+                    <strong>Total:</strong> {{ compra.total }}<br>
+                    <strong>Items:</strong>
+                    <ul>
+                        {% for item in compra.items %}
+                            <li>{{ item.producto }} ({{ item.cantidad }})</li>
+                        {% endfor %}
+                    </ul>
+                    <hr>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No hay compras registradas.</p>
+    {% endif %}
+</body>
+</html>
