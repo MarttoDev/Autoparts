@@ -134,6 +134,7 @@
     <!-- Formulario dirección -->
     <section class="direccion-form" id="direccion-form">
       <h2>Datos de envío</h2>
+
       <form id="direccionForm" action="{% url 'guardar_direccion' %}" method="post">
         {% csrf_token %}
         <input type="text" name="nombre" placeholder="Nombre completo" required>
@@ -141,7 +142,9 @@
         <input type="text" name="ciudad" placeholder="Ciudad" required>
         <input type="text" name="codigo_postal" placeholder="Código Postal" required>
         <input type="text" name="telefono" placeholder="Teléfono" required>
+        <button type="submit">Guardar dirección</button>
       </form>
+
     </section>
 
     <!-- Opción de pago y botón -->
@@ -176,6 +179,7 @@
         <!-- Nuevo botón para indicar que transferencia fue realizada -->
         <button type="button" id="btnTransferencia" style="display:none; margin-left: 1rem;">Transferencia realizada</button>
 
+
       </form>
     </section>
 
@@ -205,30 +209,70 @@
   const pagarBtn = document.getElementById('btnPagar');
   const btnTransferencia = document.getElementById('btnTransferencia');
 
-  // Habilitar botón pagar cuando se selecciona método
   pagoForm.addEventListener('change', (e) => {
     if (e.target.name === 'pago') {
       if (e.target.value === 'transferencia') {
         transferenciaCard.style.display = 'block';
-        pagarBtn.style.display = 'none';           // ocultar botón "Ir a pagar"
-        btnTransferencia.style.display = 'inline-block'; // mostrar botón "Transferencia realizada"
+        pagarBtn.style.display = 'none';
+        btnTransferencia.style.display = 'inline-block';
       } else {
         transferenciaCard.style.display = 'none';
-        pagarBtn.style.display = 'inline-block';   // mostrar botón "Ir a pagar"
+        pagarBtn.style.display = 'inline-block';
         pagarBtn.disabled = false;
-        btnTransferencia.style.display = 'none';   // ocultar botón "Transferencia realizada"
+        btnTransferencia.style.display = 'none';
       }
     }
   });
 
-  // Acción cuando se hace click en "Transferencia realizada"
+  // Botón de transferencia: guardar compra en Firebase
   btnTransferencia.addEventListener('click', () => {
-    // Aquí va la lógica para indicar que la transferencia fue realizada
-    // Ejemplo: llamada AJAX para crear la compra por verificar en backend
-    alert('Gracias, tu transferencia está en proceso de verificación.');
-    // Puedes agregar aquí lógica para enviar datos al backend o redireccionar
+    fetch("{% url 'transferencia_realizada' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}",
+        "Content-Type": "application/json"
+      },
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert("✅ Gracias, tu transferencia está en proceso de verificación.");
+        window.location.href = "{% url 'index' %}";
+      } else {
+        alert("❌ Error: " + data.error);
+      }
+    })
+    .catch(error => {
+      alert("❌ Error de red. Intenta nuevamente.");
+    });
   });
+
+  document.getElementById('direccionForm').addEventListener('submit', function(event) {
+  event.preventDefault(); // Evitar recarga
+
+  const formData = new FormData(this);
+
+  fetch("{% url 'guardar_direccion' %}", {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+    },
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if(data.status === 'ok'){
+      document.getElementById('mensajeDireccion').textContent = "Dirección guardada correctamente.";
+    } else {
+      document.getElementById('mensajeDireccion').textContent = "Error guardando dirección.";
+    }
+  })
+  .catch(() => {
+    document.getElementById('mensajeDireccion').textContent = "Error guardando dirección.";
+  });
+});
 </script>
+
 
 <script src="{% static 'autoapp/cart.js' %}"></script>
 

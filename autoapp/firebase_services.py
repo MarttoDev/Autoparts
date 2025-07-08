@@ -1,9 +1,12 @@
 from .firebase_config import db
 from datetime import datetime
 from .models import Producto
+import uuid
 
-def guardar_compra_en_firebase(user, cart_items, total, transbank_response, direccion_envio):
+
+def guardar_compra_en_firebase(user, cart_items, total, transbank_response=None, direccion_envio=None, estado=None):
     from pprint import pprint
+
     datos_compra = {
         'usuario': user.username,
         'email': user.email,
@@ -18,10 +21,15 @@ def guardar_compra_en_firebase(user, cart_items, total, transbank_response, dire
             }
             for item in cart_items
         ],
-        'transbank_status': transbank_response.get("status"),
-        'orden': transbank_response.get("buy_order"),
-        'direccion_envio': direccion_envio
+        'direccion_envio': direccion_envio or {}
     }
+
+    if transbank_response:
+        datos_compra['transbank_status'] = transbank_response.get("status")
+        datos_compra['orden'] = transbank_response.get("buy_order")
+    else:
+        datos_compra['transbank_status'] = estado or "confirmar transferencia"
+        datos_compra['orden'] = f"manual-{uuid.uuid4().hex[:8]}"
 
     print("➡️ Datos que se enviarán a Firebase:")
     pprint(datos_compra)

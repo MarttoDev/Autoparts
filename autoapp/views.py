@@ -12,15 +12,97 @@ def es_usuario_mayorista(user):
         return user.perfilusuario.es_mayorista
     except PerfilUsuario.DoesNotExist:
         return False
+    
+@csrf_exempt
+@login_required
+def transferencia_realizada(request):
+    if request.method == "POST":
+        cart = Cart(request)
+        items = cart.get_items()
+        total = cart.get_total()
+        direccion_envio = request.session.get('direccion_envio', {})
+
+        try:
+            guardar_compra_en_firebase(
+                request.user,
+                items,
+                total,
+                transbank_response=None,
+                direccion_envio=direccion_envio,
+                estado="confirmar transferencia"
+            )
+
+            # Actualizar stock local y limpiar carrito
+            for item in items:
+                producto = item['producto']
+                producto.stock -= item['quantity']
+                producto.save()
+
+            CartItem.objects.filter(user=request.user).delete()
+            request.session['cart'] = {}
+            if 'direccion_envio' in request.session:
+                del request.session['direccion_envio']
+
+            return JsonResponse({"success": True})
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Método no permitido"})
 
 
 #panel admin
+from django.views.decorators.http import require_POST
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 from datetime import datetime
 
+@staff_member_required
+@require_POST
+def actualizar_estado_compra(request, compra_id):
+    accion = request.POST.get('accion')
 
-@staff_member_required  # Solo staff y superusuarios pueden acceder
+    if accion not in ['aprobar', 'rechazar']:
+        messages.error(request, "Acción no válida")
+        return redirect('pagina_superusuario')
+
+    try:
+        compra_ref = db.collection('compras').document(compra_id)
+        compra_data = compra_ref.get().to_dict()
+
+        if not compra_data:
+            messages.error(request, "Compra no encontrada")
+            return redirect('pagina_superusuario')
+
+        nuevo_estado = 'aprobada' if accion == 'aprobar' else 'rechazada'
+        compra_ref.update({'transbank_status': nuevo_estado})
+        messages.success(request, f"Compra {accion} correctamente")
+
+    except Exception as e:
+        messages.error(request, f"Error al actualizar compra: {str(e)}")
+
+    return redirect('pagina_superusuario')
+
+
+@staff_member_required
+@require_POST
+def modificar_stock(request, producto_id):
+    try:
+        nuevo_stock = int(request.POST.get('nuevo_stock', -1))
+        if nuevo_stock < 0:
+            messages.error(request, "Stock inválido")
+            return redirect('pagina_superusuario')
+
+        producto_ref = db.collection('productos').document(producto_id)
+        producto_ref.update({'stock': nuevo_stock})
+        messages.success(request, "Stock actualizado correctamente")
+
+    except Exception as e:
+        messages.error(request, f"Error al actualizar stock: {str(e)}")
+
+    return redirect('pagina_superusuario')
+
+@staff_member_required
 def panel_superusuario(request):
     productos_ref = db.collection('productos').stream()
     productos = [{'id': p.id, **p.to_dict()} for p in productos_ref]
@@ -42,16 +124,18 @@ def panel_superusuario(request):
             else:
                 fecha_obj = None
 
-            fecha_formateada = fecha_obj.strftime('%Y-%m-%d') if fecha_obj else str(fecha_val)
+            fecha_formateada = fecha_obj.strftime('%Y-%m-%d %H:%M') if fecha_obj else str(fecha_val)
         else:
             fecha_formateada = 'N/A'
 
         compras.append({
             'id': v.id,
-            'usuario': data.get('usuario', 'N/A'),  
+            'usuario': data.get('usuario', 'N/A'),
             'fecha': fecha_formateada,
-            'total': data.get('total'),
-            'items': data.get('items', []),  
+            'total': data.get('total', 0),
+            'items': data.get('items', []) or [],
+            'transbank_status': data.get('transbank_status', ''), 
+            'direccion_envio': data.get('direccion_envio', {}),   
         })
 
     return render(request, 'panel_superusuario.html', {
@@ -219,17 +303,19 @@ def remove_from_cart(request, producto_id):
     return redirect('cart_detail')
 
 
-@login_required
+@csrf_exempt
 def guardar_direccion(request):
     if request.method == 'POST':
-        campos = ['nombre', 'direccion', 'ciudad', 'codigo_postal', 'telefono']
-        if not all(request.POST.get(campo) for campo in campos):
-            messages.error(request, "Por favor completa todos los campos de dirección.")
-            return redirect('cart_detail')
-
-        request.session['direccion_envio'] = {campo: request.POST.get(campo) for campo in campos}
-        messages.success(request, "Dirección guardada correctamente.")
-    return redirect('cart_detail')
+        direccion = {
+            'nombre': request.POST.get('nombre'),
+            'direccion': request.POST.get('direccion'),
+            'ciudad': request.POST.get('ciudad'),
+            'codigo_postal': request.POST.get('codigo_postal'),
+            'telefono': request.POST.get('telefono'),
+        }
+        request.session['direccion_envio'] = direccion
+        return JsonResponse({'status': 'ok'})
+    return JsonResponse({'status': 'error'})
 
 @login_required
 def iniciar_pago(request):

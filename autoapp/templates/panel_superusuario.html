@@ -20,6 +20,7 @@
       display: flex;
       gap: 20px;
       margin-bottom: 40px;
+      flex-wrap: wrap;
     }
 
     /* Card estilo */
@@ -29,7 +30,7 @@
       border-radius: 8px;
       padding: 20px;
       flex: 1;
-      min-width: 250px;
+      min-width: 300px;
     }
 
     .card h2 {
@@ -47,6 +48,7 @@
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
+      margin-top: 10px;
     }
 
     th, td {
@@ -54,6 +56,7 @@
       text-align: left;
       border-bottom: 1px solid #ddd;
       font-size: 0.9rem;
+      vertical-align: middle;
     }
 
     th {
@@ -73,16 +76,81 @@
       padding: 15px;
       text-align: center;
     }
+
+    /* Mensajes flash */
+    .messages {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 20px;
+    }
+
+    .messages li {
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+    }
+
+    .messages li.success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .messages li.error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    /* Botones */
+    button {
+      cursor: pointer;
+      padding: 6px 12px;
+      margin: 0 5px 5px 0;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      background-color: #2980b9;
+      font-size: 0.9rem;
+    }
+
+    button.reject {
+      background-color: #c0392b;
+    }
+
+    form.inline-form {
+      display: inline-block;
+      margin: 0;
+    }
+
+    input[type=number] {
+      width: 60px;
+      padding: 5px;
+      font-size: 0.9rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
 
   <h1>Panel de Superusuario</h1>
 
-    <a href="{% url 'index' %}" style="display: inline-block; margin-bottom: 20px; padding: 10px 15px; background-color: #2980b9; color: white; text-decoration: none; border-radius: 5px;">
-    Volver al Inicio
-    </a>
+  <!-- Mostrar mensajes -->
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
 
+  <a href="{% url 'index' %}" style="display: inline-block; margin-bottom: 20px; padding: 10px 15px; background-color: #2980b9; color: white; text-decoration: none; border-radius: 5px;">
+    Volver al Inicio
+  </a>
+  <a href="/admin/autoapp/producto/"
+   style="display:inline-block; margin-bottom: 15px; padding: 8px 12px; background-color: #27ae60; color: white; text-decoration: none; border-radius: 5px;">
+   Agregar Producto
+</a>
   <div class="cards-container">
     <!-- Card Productos -->
     <div class="card">
@@ -95,6 +163,7 @@
             <th>Nombre</th>
             <th>Precio</th>
             <th>Stock</th>
+            <th>Actualizar Stock</th>
           </tr>
         </thead>
         <tbody>
@@ -104,6 +173,13 @@
             <td>{{ producto.nombre }}</td>
             <td>${{ producto.precio }}</td>
             <td>{{ producto.stock }}</td>
+            <td>
+              <form method="POST" action="{% url 'modificar_stock' producto.id %}" class="inline-form">
+                {% csrf_token %}
+                <input type="number" name="nuevo_stock" min="0" value="{{ producto.stock }}" required />
+                <button type="submit">Actualizar</button>
+              </form>
+            </td>
           </tr>
           {% endfor %}
         </tbody>
@@ -114,42 +190,64 @@
     </div>
 
     <!-- Card Ventas -->
-    <div class="card">
-    <h2>Ventas</h2>
-    {% if compras %}
-        {% for compra in compras %}
-        <div style="margin-bottom: 20px;">
-            <strong>Orden ID:</strong> {{ compra.id }}<br>
-            <strong>Usuario:</strong> {{ compra.usuario }}<br>
-            <strong>Fecha:</strong> {{ compra.fecha }}<br>
-            <strong>Total:</strong> ${{ compra.total }}<br>
-            <table>
-            <thead>
-                <tr>
-                <th>Producto</th>
-                <th>Cantidad</th>
-                <th>Precio Unitario</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in compra.items %}
-                <tr>
+<div class="card" style="min-width: 400px;">
+  <h2>Ventas</h2>
+  {% if compras %}
+      {% for compra in compras %}
+      <div style="margin-bottom: 25px; border-bottom: 1px solid #ddd; padding-bottom: 15px;">
+          <strong>Orden ID:</strong> {{ compra.id }}<br>
+          <strong>Usuario:</strong> {{ compra.usuario }}<br>
+          <strong>Fecha:</strong> {{ compra.fecha }}<br>
+          <strong>Total:</strong> ${{ compra.total }}<br>
+          <strong>Estado de pago:</strong> {{ compra.transbank_status|title }}<br>
+          <strong>Método de pago:</strong> {{ compra.metodo_pago|default:"N/A"|title }}<br>
+
+          <h4>Dirección de envío:</h4>
+          {% if compra.direccion_envio %}
+            <p>
+              <strong>Nombre:</strong> {{ compra.direccion_envio.nombre|default:"-" }}<br>
+              <strong>Dirección:</strong> {{ compra.direccion_envio.direccion|default:"-" }}<br>
+              <strong>Ciudad:</strong> {{ compra.direccion_envio.ciudad|default:"-" }}<br>
+              <strong>Código Postal:</strong> {{ compra.direccion_envio.codigo_postal|default:"-" }}<br>
+              <strong>Teléfono:</strong> {{ compra.direccion_envio.telefono|default:"-" }}
+            </p>
+          {% else %}
+            <p>No hay dirección registrada</p>
+          {% endif %}
+
+          <table>
+          <thead>
+              <tr>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio Unitario</th>
+              </tr>
+          </thead>
+          <tbody>
+              {% for item in compra.items %}
+              <tr>
                 <td>{{ item.nombre }}</td>
                 <td>{{ item.cantidad }}</td>
                 <td>${{ item.precio }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-            </table>
-        </div>
-        {% endfor %}
-    {% else %}
-        <div class="empty-msg">No hay ventas para mostrar.</div>
-    {% endif %}
-    </div>
+              </tr>
+              {% endfor %}
+          </tbody>
+          </table>
+
+          <form method="POST" action="{% url 'actualizar_estado_compra' compra.id %}">
+            {% csrf_token %}
+            <button type="submit" name="accion" value="aprobar">Aprobar</button>
+            <button type="submit" name="accion" value="rechazar" class="reject">Rechazar</button>
+          </form>
+      </div>
+      {% endfor %}
+  {% else %}
+      <div class="empty-msg">No hay ventas para mostrar.</div>
+  {% endif %}
+</div>
 
 
-
+  </div>
 
 </body>
 </html>
