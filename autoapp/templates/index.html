@@ -20,32 +20,39 @@
       <input type="search" id="buscador" placeholder="Buscar productos">
     </div>
 
-
     <div class="user-panel">
       {% if user.is_authenticated %}
-        <span class="user-greeting"><i class="fas fa-user"></i> Hola, {{ user.username }}</span>
-        <form method="post" action="{% url 'logout' %}" class="original-form logout-form">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-danger">
-            <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-          </button>
-        </form>
-      {% else %}
-        <a href="{% url 'login' %}" class="btn btn-primary">
-          <i class="fas fa-sign-in-alt"></i> Iniciar sesión
-        </a>
-        <a href="{% url 'register' %}" class="btn btn-success">
-          <i class="fas fa-user-plus"></i> Registrarse
+      <span class="user-greeting"><i class="fas fa-user"></i> Hola, {{ user.username }}</span>
+
+      {% if user.is_superuser %}
+        <a href="{% url 'pagina_superusuario' %}" class="btn btn-warning">
+          <i class="fas fa-user-shield"></i> Panel Admin 
         </a>
       {% endif %}
 
-      <a href="{% url 'cart_detail' %}" class="btn btn-accent cart-btn">
+      <form method="post" action="{% url 'logout' %}" class="original-form logout-form">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">
+          <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+        </button>
+      </form>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn btn-primary">
+            <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+          </a>
+          <a href="{% url 'register' %}" class="btn btn-success">
+            <i class="fas fa-user-plus"></i> Registrarse
+          </a>
+        {% endif %}
+
+        <a href="{% url 'cart_detail' %}" class="btn btn-accent cart-btn">
         <i class="fas fa-shopping-cart"></i> Carrito
         {% if cart_item_count %}
           <span class="cart-count">{{ cart_item_count }}</span>
         {% endif %}
       </a>
-    </div>
+  </div>
+
   </header>
 
   <main class="main-container">
@@ -70,61 +77,77 @@
     </section>
 </main>
 
-  <section>
-    <h2 style="text-align: center;">Catalogo</h2>
-    <div class="catalog-grid">
-      {% for producto in productos %}
-      <article class="card-modern producto">
-        {% if es_mayorista and producto.precio_mayorista %}
-          <div class="mayorista-label">Mayorista</div>
-        {% endif %}
+<section>
+  {% if es_mayorista %}
+    <p style="text-align: center; color: green;">
+      <strong>¡Estás viendo precios mayoristas con 30% de descuento!</strong>
+    </p>
+  {% endif %}
+  
+  <h2 style="text-align: center;">Catálogo</h2>
+  
+  <div class="catalog-grid">
+    {% for producto in productos %}
+    <article class="card-modern producto">
+      
+      {% if es_mayorista %}
+        <div class="mayorista-label">Mayorista</div>
+      {% endif %}
 
-        <div class="product-image">
-          {% if producto.imagen %}
-            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" />
+      <div class="product-image">
+        {% if producto.imagen %}
+          <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" />
+        {% else %}
+          <i class="fas fa-image placeholder-icon"></i>
+        {% endif %}
+      </div>
+
+      <div class="product-info">
+        <div class="marca">{{ producto.marca }}</div>
+        <h3>{{ producto.nombre }}</h3>
+
+        <div class="precio">
+          {% if es_mayorista %}
+            <div class="precio-mayorista">
+              <span class="precio-regular">
+                <del>${{ producto.precio|floatformat:0 }}</del>
+              </span>
+              <span class="precio-descuento">
+                ${{ producto.precio_mayorista|floatformat:0 }}
+              </span>
+              <span class="descuento-label">-30%</span>
+            </div>
           {% else %}
-            <i class="fas fa-image placeholder-icon"></i>
+            <div class="precio-normal">
+              ${{ producto.precio|floatformat:0 }}
+            </div>
           {% endif %}
         </div>
 
-        <div class="product-info">
-          <div class="marca">{{ producto.marca }}</div>
-          <h3>{{ producto.nombre }}</h3>
-
-          <div class="precio">
-            {% if es_mayorista and producto.precio_mayorista %}
-              <div class="precio-mayorista">
-                <span class="precio-regular">${{ producto.precio|floatformat:0 }}</span>
-                <span class="precio-descuento">${{ producto.precio_mayorista|floatformat:0 }}</span>
-                <span class="descuento-label">-30%</span>
-              </div>
-            {% else %}
-              <div class="precio-normal">${{ producto.precio|floatformat:0 }}</div>
-            {% endif %}
-          </div>
-
-          <div class="stock-info">
-            <div class="stock-dot"></div>
-            <span>{{ producto.stock }} disponibles</span>
-          </div>
-
-          <form method="post" action="{% url 'add_to_cart' producto.id %}" class="original-form add-to-cart-form">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary btn-add-cart">
-              <i class="fas fa-cart-plus"></i> Añadir al Carrito
-            </button>
-          </form>
+        <div class="stock-info">
+          <div class="stock-dot"></div>
+          <span>{{ producto.stock }} disponibles</span>
         </div>
-      </article>
-      {% empty %}
-      <div class="empty-results">
-        <i class="fas fa-search"></i>
-        <h3>No hay productos disponibles</h3>
-        <p>Intenta ajustar tus filtros de búsqueda</p>
+
+        <form method="post" action="{% url 'add_to_cart' producto.id %}" class="original-form add-to-cart-form">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary btn-add-cart">
+            <i class="fas fa-cart-plus"></i> Añadir al Carrito
+          </button>
+        </form>
       </div>
-      {% endfor %}
+    </article>
+    {% empty %}
+    <div class="empty-results">
+      <i class="fas fa-search"></i>
+      <h3>No hay productos disponibles</h3>
+      <p>Intenta ajustar tus filtros de búsqueda</p>
     </div>
-  </section>
+    {% endfor %}
+  </div>
+</section>
+
+
 
   <section id="nosotros">
     <h2>Sobre Nosotros</h2>

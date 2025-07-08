@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Panel de Superusuario</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f7f9fc;
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+
+    /* Contenedor de cards */
+    .cards-container {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    /* Card estilo */
+    .card {
+      background: white;
+      box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
+      border-radius: 8px;
+      padding: 20px;
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+      color: #34495e;
+    }
+
+    /* Tabla estilo */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background-color: #2980b9;
+      color: white;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background-color: #f1f9ff;
+    }
+
+    /* Mensaje si no hay datos */
+    .empty-msg {
+      font-style: italic;
+      color: #888;
+      padding: 15px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Panel de Superusuario</h1>
+
+    <a href="{% url 'index' %}" style="display: inline-block; margin-bottom: 20px; padding: 10px 15px; background-color: #2980b9; color: white; text-decoration: none; border-radius: 5px;">
+    Volver al Inicio
+    </a>
+
+  <div class="cards-container">
+    <!-- Card Productos -->
+    <div class="card">
+      <h2>Productos</h2>
+      {% if productos %}
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for producto in productos %}
+          <tr>
+            <td>{{ producto.id }}</td>
+            <td>{{ producto.nombre }}</td>
+            <td>${{ producto.precio }}</td>
+            <td>{{ producto.stock }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-msg">No hay productos para mostrar.</div>
+      {% endif %}
+    </div>
+
+    <!-- Card Ventas -->
+    <div class="card">
+    <h2>Ventas</h2>
+    {% if compras %}
+        {% for compra in compras %}
+        <div style="margin-bottom: 20px;">
+            <strong>Orden ID:</strong> {{ compra.id }}<br>
+            <strong>Usuario:</strong> {{ compra.usuario }}<br>
+            <strong>Fecha:</strong> {{ compra.fecha }}<br>
+            <strong>Total:</strong> ${{ compra.total }}<br>
+            <table>
+            <thead>
+                <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in compra.items %}
+                <tr>
+                <td>{{ item.nombre }}</td>
+                <td>{{ item.cantidad }}</td>
+                <td>${{ item.precio }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-msg">No hay ventas para mostrar.</div>
+    {% endif %}
+    </div>
+
+
+
+
+</body>
+</html>

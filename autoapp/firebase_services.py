@@ -7,7 +7,7 @@ def guardar_compra_en_firebase(user, cart_items, total, transbank_response, dire
     datos_compra = {
         'usuario': user.username,
         'email': user.email,
-        'fecha': datetime.utcnow().isoformat(),
+        'fecha': datetime.utcnow(),
         'total': int(total),
         'items': [
             {

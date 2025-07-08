@@ -5,6 +5,61 @@ from django.http import JsonResponse
 from rest_framework import generics
 import uuid
 
+#mayorista
+from decimal import Decimal
+def es_usuario_mayorista(user):
+    try:
+        return user.perfilusuario.es_mayorista
+    except PerfilUsuario.DoesNotExist:
+        return False
+
+
+#panel admin
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import render
+from datetime import datetime
+
+
+@staff_member_required  # Solo staff y superusuarios pueden acceder
+def panel_superusuario(request):
+    productos_ref = db.collection('productos').stream()
+    productos = [{'id': p.id, **p.to_dict()} for p in productos_ref]
+
+    compras_ref = db.collection('compras').stream()
+    compras = []
+    for v in compras_ref:
+        data = v.to_dict()
+
+        fecha_val = data.get('fecha')
+        if fecha_val:
+            if isinstance(fecha_val, str):
+                try:
+                    fecha_obj = datetime.fromisoformat(fecha_val)
+                except ValueError:
+                    fecha_obj = None
+            elif isinstance(fecha_val, datetime):
+                fecha_obj = fecha_val
+            else:
+                fecha_obj = None
+
+            fecha_formateada = fecha_obj.strftime('%Y-%m-%d') if fecha_obj else str(fecha_val)
+        else:
+            fecha_formateada = 'N/A'
+
+        compras.append({
+            'id': v.id,
+            'usuario': data.get('usuario', 'N/A'),  
+            'fecha': fecha_formateada,
+            'total': data.get('total'),
+            'items': data.get('items', []),  
+        })
+
+    return render(request, 'panel_superusuario.html', {
+        'productos': productos,
+        'compras': compras,
+    })
+
+
 #firebase
 from .firebase_config import db 
 from .firebase_services import guardar_compra_en_firebase
@@ -23,16 +78,29 @@ def get_transaction():
         api_key="1234567890abcdef1234567890abcdef"
     )
 
+#PANEL DE ADMIN
+def verificar_superusuario(request):
+    es_superusuario = request.user.is_authenticated and request.user.is_superuser
+    return render(request, 'pagina_principal.html', {'es_superusuario': es_superusuario})
+
 
 def index(request):
     productos = Producto.objects.all()
     categorias = Categoria.objects.all()
 
-    es_mayorista = request.user.is_authenticated and hasattr(request.user, 'perfilusuario') and request.user.perfilusuario.es_mayorista
+    # Verificamos si el usuario es mayorista
+    es_mayorista = (
+        request.user.is_authenticated and 
+        hasattr(request.user, 'perfilusuario') and 
+        request.user.perfilusuario.es_mayorista
+    )
 
-    # Precio con descuento para mayoristas
+    # Agregamos precio mayorista dinámico
     for producto in productos:
-        producto.precio_mayorista = producto.precio * 0.7 if es_mayorista else producto.precio
+        if es_mayorista:
+            producto.precio_mayorista = producto.precio * Decimal('0.7')
+        else:
+            producto.precio_mayorista = None  # Opcional, solo para claridad
 
     context = {
         'productos': productos,
@@ -41,6 +109,7 @@ def index(request):
         'es_mayorista': es_mayorista,
     }
     return render(request, 'index.html', context)
+
 
 #pal filtro
 def productos_por_categoria(request, slug):
@@ -68,20 +137,27 @@ def add_to_cart(request, product_id):
     return redirect('cart_detail')
 
 #registrar usuario
+from .models import PerfilUsuario
+
 def register(request):
     if request.method == 'POST':
         form = RegistroUsuarioForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect('login')
+        else:
+            print(form.errors)  # Esto te mostrará los errores en la consola
     else:
         form = RegistroUsuarioForm()
     return render(request, 'registration/register.html', {'form': form})
 
 
+
 def cart_view(request):
     return render(request, 'autoapp/cart.html')
 
+
+from decimal import Decimal
 
 @login_required
 def cart_detail(request):
@@ -89,23 +165,37 @@ def cart_detail(request):
     items = cart.get_items()
     total_quantity = sum(item['quantity'] for item in items)
 
-    es_mayorista = request.user.is_authenticated and hasattr(request.user, 'perfilusuario') and request.user.perfilusuario.es_mayorista
+    es_mayorista = (
+        request.user.is_authenticated and
+        hasattr(request.user, 'perfilusuario') and
+        request.user.perfilusuario.es_mayorista
+    )
 
     if es_mayorista and total_quantity < 10:
         messages.error(request, "La compra mínima para mayoristas es de 10 productos.")
-        return redirect('cart_view')
+        return render(request, 'cart.html', {
+            'cart_items': items,
+            'cart_total': cart.get_total(),
+            'items_count': total_quantity,
+            'es_mayorista': es_mayorista,
+        })
 
-    total = 0
+    total = Decimal('0')
     for item in items:
-        precio_unitario = item['producto'].precio * 0.7 if es_mayorista else item['producto'].precio
+        if es_mayorista:
+            precio_unitario = item['producto'].precio * Decimal('0.7')
+        else:
+            precio_unitario = item['producto'].precio
         total += precio_unitario * item['quantity']
 
     return render(request, 'cart.html', {
         'cart_items': items,
         'cart_total': total,
-        'items_count': len(items),
+        'items_count': total_quantity,
         'es_mayorista': es_mayorista,
     })
+
+
 
 
 @login_required

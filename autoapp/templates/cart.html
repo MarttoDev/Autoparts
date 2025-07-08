@@ -144,27 +144,91 @@
       </form>
     </section>
 
-    <!-- Opción de pago -->
+    <!-- Opción de pago y botón -->
     <section class="opciones" style="margin-top: 2rem;">
       <h2>Opción de pago</h2>
-      <form id="pagoForm">
+      <form id="pagoForm" method="post" action="{% url 'iniciar_pago' %}">
+        {% csrf_token %}
+
         <label>
           <input type="radio" name="pago" value="webpay" required> Pago con WebPay
         </label>
+        {% if es_mayorista %}
+        <label>
+          <input type="radio" name="pago" value="transferencia" required> Pago por Transferencia
+        </label>
+        {% endif %}
+
+        <input type="hidden" name="envio" id="envioSeleccionado" value="retiro">
+
+        <div id="transferenciaCard" style="display: none; border: 1px solid #ccc; padding: 1rem; margin-top: 1rem;">
+          <h3>Datos para la transferencia</h3>
+          <p><strong>Banco:</strong> Banco Ejemplo</p>
+          <p><strong>Cuenta:</strong> 1234 5678 9012 3456</p>
+          <p><strong>RUT:</strong> 12.345.678-9</p>
+          <p><strong>Titular:</strong> Autopartys S.A.</p>
+          <p>Por favor, una vez realizada la transferencia envía el comprobante a soporte@autopartys.cl</p>
+        </div>
+
+        <!-- Botón para pagar con WebPay -->
+        <button type="submit" id="btnPagar" disabled>Ir a pagar</button>
+
+        <!-- Nuevo botón para indicar que transferencia fue realizada -->
+        <button type="button" id="btnTransferencia" style="display:none; margin-left: 1rem;">Transferencia realizada</button>
+
       </form>
     </section>
-
-    <!-- Botón pagar -->
-    <form id="pagoFinalForm" action="{% url 'iniciar_pago' %}" method="post" style="margin-top: 2rem;">
-      {% csrf_token %}
-      <input type="hidden" name="envio" id="envioSeleccionado" value="retiro">
-      <button type="submit" id="btnPagar" disabled>Ir a pagar</button>
-    </form>
 
   {% else %}
     <p>Tu carrito está vacío.</p>
   {% endif %}
 </main>
+
+<script>
+  const envioRadios = document.querySelectorAll('input[name="envio"]');
+  const envioSeleccionadoInput = document.getElementById('envioSeleccionado');
+  const direccionFormSection = document.getElementById('direccion-form');
+
+  envioRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      envioSeleccionadoInput.value = radio.value;
+      if (radio.value === 'domicilio') {
+        direccionFormSection.style.display = 'block';
+      } else {
+        direccionFormSection.style.display = 'none';
+      }
+    });
+  });
+
+  const pagoForm = document.getElementById('pagoForm');
+  const transferenciaCard = document.getElementById('transferenciaCard');
+  const pagarBtn = document.getElementById('btnPagar');
+  const btnTransferencia = document.getElementById('btnTransferencia');
+
+  // Habilitar botón pagar cuando se selecciona método
+  pagoForm.addEventListener('change', (e) => {
+    if (e.target.name === 'pago') {
+      if (e.target.value === 'transferencia') {
+        transferenciaCard.style.display = 'block';
+        pagarBtn.style.display = 'none';           // ocultar botón "Ir a pagar"
+        btnTransferencia.style.display = 'inline-block'; // mostrar botón "Transferencia realizada"
+      } else {
+        transferenciaCard.style.display = 'none';
+        pagarBtn.style.display = 'inline-block';   // mostrar botón "Ir a pagar"
+        pagarBtn.disabled = false;
+        btnTransferencia.style.display = 'none';   // ocultar botón "Transferencia realizada"
+      }
+    }
+  });
+
+  // Acción cuando se hace click en "Transferencia realizada"
+  btnTransferencia.addEventListener('click', () => {
+    // Aquí va la lógica para indicar que la transferencia fue realizada
+    // Ejemplo: llamada AJAX para crear la compra por verificar en backend
+    alert('Gracias, tu transferencia está en proceso de verificación.');
+    // Puedes agregar aquí lógica para enviar datos al backend o redireccionar
+  });
+</script>
 
 <script src="{% static 'autoapp/cart.js' %}"></script>
 

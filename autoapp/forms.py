@@ -2,6 +2,8 @@ from django import forms
 from .models import Producto
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from .models import PerfilUsuario
+
 
 class ProductoForm(forms.ModelForm):
     class Meta:
@@ -24,6 +26,16 @@ class RegistroUsuarioForm(UserCreationForm):
             'password2': None,
         }
 
+    def save(self, commit=True):
+        user = super().save(commit)
+        es_mayorista = self.cleaned_data.get('es_mayorista', False)
+
+        perfil, created = PerfilUsuario.objects.get_or_create(user=user)
+        perfil.es_mayorista = es_mayorista
+        perfil.save()
+
+        return user
+    
 class DatosPersonalesForm(forms.Form):
     nombre = forms.CharField(max_length=100)
     email = forms.EmailField()
