@@ -5,6 +5,13 @@ from django.http import JsonResponse
 from rest_framework import generics
 import uuid
 
+#producto detalle
+from .models import Producto
+
+def producto_detalle(request, pk):
+    producto = get_object_or_404(Producto, pk=pk)
+    return render(request, 'producto_detalle.html', {'producto': producto})
+
 #mayorista
 from decimal import Decimal
 def es_usuario_mayorista(user):

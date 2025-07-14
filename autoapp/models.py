@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils.text import slugify
+from django.core.exceptions import ValidationError
+from simple_history.models import HistoricalRecords
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100)
@@ -22,8 +23,25 @@ class Producto(models.Model):
     destacado = models.BooleanField(default=False)
     oferta = models.BooleanField(default=False)
 
-    def __str__(self):
-        return self.nombre
+    history = HistoricalRecords()
+
+def clean(self):
+    # Validar precio no nulo y no negativo
+    if self.precio is None:
+        raise ValidationError({'precio': 'El precio no puede estar vacío.'})
+    if self.precio < 0:
+        raise ValidationError({'precio': 'El precio no puede ser negativo.'})
+
+    # Validar que precio no tenga decimales extras (más de 2)
+    # Esto asegura que solo tenga máximo 2 decimales
+    if abs(self.precio.as_tuple().exponent) > 2:
+        raise ValidationError({'precio': 'El precio solo puede tener hasta 2 decimales.'})
+
+    # Validar que stock no sea negativo (aunque PositiveIntegerField ya lo hace)
+    if self.stock is None:
+        raise ValidationError({'stock': 'El stock no puede estar vacío.'})
+    if self.stock < 0:
+        raise ValidationError({'stock': 'El stock no puede ser negativo.'})
 
 class CartItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

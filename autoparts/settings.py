@@ -20,7 +20,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'autoapp.apps.AutoappConfig', 
+    'autoapp.apps.AutoappConfig',
+    'simple_history', 
 ]
 
 MIDDLEWARE = [
@@ -31,6 +32,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'autoparts.urls'
@@ -80,7 +82,7 @@ LOGOUT_REDIRECT_URL = '/'
 # >>> CONFIGURACIÓN PARA CONSERVAR SESIÓN TRAS LOGIN <<<
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_COOKIE_AGE = 3600  # 1 hora (puedes ajustar)
+SESSION_COOKIE_AGE = 3600  # 1 hora 
 SESSION_COOKIE_SECURE = False  # Solo para desarrollo
 SESSION_COOKIE_NAME = 'autoparts_session'
 

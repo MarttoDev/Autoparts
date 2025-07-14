@@ -25,9 +25,11 @@ urlpatterns = [
     path('guardar-direccion/', views.guardar_direccion, name='guardar_direccion'),
     path('superusuario/', views.panel_superusuario, name='pagina_superusuario'),
     path('transferencia-realizada/', views.transferencia_realizada, name='transferencia_realizada'),
+    path('producto/<int:pk>/', views.producto_detalle, name='producto_detalle'),
 
     path('compra/<str:compra_id>/actualizar-estado/', views.actualizar_estado_compra, name='actualizar_estado_compra'),
     path('producto/<str:producto_id>/modificar-stock/', views.modificar_stock, name='modificar_stock'),
+
 
 
 

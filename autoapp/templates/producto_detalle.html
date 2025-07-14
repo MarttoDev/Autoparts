@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Detalle de {{ producto.nombre }}</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .producto-detalle {
+            background-color: #fff;
+            max-width: 800px;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .producto-detalle:hover {
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        }
+
+        .producto-detalle h1 {
+            margin-top: 0;
+            font-size: 2rem;
+            color: #264653;
+            margin-bottom: 15px;
+        }
+
+        .producto-detalle img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background-color: #f0f0f0;
+        }
+
+        .producto-detalle p {
+            margin: 8px 0;
+            line-height: 1.5;
+            font-size: 1rem;
+        }
+
+        .producto-detalle strong {
+            color: #1d3557;
+        }
+
+        .precio {
+            font-size: 1.8rem;
+            color: #2a9d8f;
+            margin: 15px 0;
+        }
+
+        .volver {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 10px 16px;
+            background-color: #264653;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .volver:hover {
+            background-color: #1d3557;
+        }
+
+        @media (max-width: 600px) {
+            .producto-detalle {
+                padding: 20px;
+            }
+
+            .producto-detalle h1 {
+                font-size: 1.5rem;
+            }
+
+            .precio {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="producto-detalle">
+        <h1>{{ producto.nombre }}</h1>
+
+        {% if producto.imagen %}
+            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" />
+        {% else %}
+            <p><em>Sin imagen disponible</em></p>
+        {% endif %}
+
+        <p><strong>Marca:</strong> {{ producto.marca }}</p>
+        <p><strong>Código producto:</strong> {{ producto.codigo_producto }}</p>
+        <p><strong>Descripción:</strong><br />{{ producto.descripcion }}</p>
+        <p class="precio"><strong>Precio:</strong> ${{ producto.precio|floatformat:0 }}</p>
+        <p><strong>Stock disponible:</strong> {{ producto.stock }}</p>
+
+        <a class="volver" href="{% url 'index' %}">&larr; Volver al índice</a>
+    </div>
+</body>
+</html>

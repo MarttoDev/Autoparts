@@ -13,7 +13,7 @@ class TestRegistroLogin(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         options = Options()
-        service = FirefoxService(executable_path='C:/Users/Martto/Documents/Selenium tester/geckodriver.exe')
+        cls.service = FirefoxService(executable_path='./drivers/geckodriver.exe')
         cls.driver = webdriver.Firefox(service=service, options=options)
         cls.wait = WebDriverWait(cls.driver, 10)
         cls.base_url = "http://127.0.0.1:8000"

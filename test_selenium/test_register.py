@@ -14,7 +14,7 @@ class TestRegistroUsuario(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         options = Options()
-        cls.service = FirefoxService(executable_path='C:/Users/Martto/Documents/Selenium tester/geckodriver.exe')
+        cls.service = FirefoxService(executable_path='./drivers/geckodriver.exe')
         cls.driver = webdriver.Firefox(service=cls.service, options=options)
         cls.wait = WebDriverWait(cls.driver, 10)
 
@@ -66,7 +66,7 @@ class TestRegistroUsuario(unittest.TestCase):
         self.driver.find_element(By.NAME, "password2").send_keys("OtraPass456")
         self.driver.find_element(By.TAG_NAME, "button").click()
 
-        time.sleep(2)  # Espera que se procese el submit
+        time.sleep(2)  
 
         # La URL debe seguir siendo la página de registro
         self.assertIn("/register", self.driver.current_url)
