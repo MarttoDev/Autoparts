@@ -22,7 +22,6 @@ urlpatterns = [
     path('cart/update/<int:producto_id>/', views.update_cart_quantity, name='update_cart_quantity'),
     path('guardar-direccion/', views.guardar_direccion, name='guardar_direccion'),
     path('carrito/', views.cart_detail, name='cart_detail'),
-    path('carrito/', views.cart_view, name='cart_view'),
     path('guardar-direccion/', views.guardar_direccion, name='guardar_direccion'),
     path('superusuario/', views.panel_superusuario, name='pagina_superusuario'),
     path('transferencia-realizada/', views.transferencia_realizada, name='transferencia_realizada'),

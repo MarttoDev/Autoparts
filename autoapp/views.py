@@ -230,18 +230,11 @@ def register(request):
             form.save()
             return redirect('login')
         else:
-            print(form.errors)  # Esto te mostrará los errores en la consola
+            print(form.errors)
+            return render(request, 'registration/register.html', {'form': form})
     else:
         form = RegistroUsuarioForm()
     return render(request, 'registration/register.html', {'form': form})
-
-
-
-def cart_view(request):
-    return render(request, 'autoapp/cart.html')
-
-
-from decimal import Decimal
 
 @login_required
 def cart_detail(request):
